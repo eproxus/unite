@@ -1,4 +1,4 @@
 unite
 =====
 
-A modern unit test runner for Erlang
+A modern test runner for Erlang

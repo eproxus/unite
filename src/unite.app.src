@@ -1,0 +1,5 @@
+{application, unite, [
+  {description, "A modern test runner"},
+  {vsn, "0.1"},
+  {applications, [kernel, stdlib]}
+]}.
