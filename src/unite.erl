@@ -8,7 +8,7 @@
 test(Specs) -> test(Specs, []).
 
 test(Specs, Options) ->
-    Format = proplists:get_value(format, Options, unite_compact),
+    Format = proplists:get_value(format, Options, unite_verbose),
     Tests = discover_tests(Specs),
     {Format, {Passed, Failed}} = run_tests(Tests, {Format, {0, 0}}),
     Format:test_summary(Passed, Failed, 0).
@@ -48,6 +48,19 @@ run_tests([], State) ->
     State.
 
 run_test(F, {Format, {Passed, Failed}}) ->
-    ok = F(),
-    Format:test_case(),
+    Result = try
+        ok = F(),
+        {passed, ok}
+    catch
+        T:R ->
+            {failed, {T, R, erlang:get_stacktrace()}}
+    end,
+
+    Info = erlang:fun_info(F),
+    Format:test_case(
+        Result,
+        % element(random:uniform(2), {Result, {skipped, {a, b, []}}}),
+        proplists:get_value(module, Info),
+        proplists:get_value(name, Info)
+    ),
     {Format, {Passed + 1, Failed}}.
