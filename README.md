@@ -1,4 +1,4 @@
 unite
 =====
 
-A modern test runner for Erlang
+Pretty EUnit test formatters
