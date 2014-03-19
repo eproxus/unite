@@ -9,26 +9,37 @@
 %--- API ----------------------------------------------------------------------
 
 test_summary(Passed, Failed, Skipped) ->
-    {ok, Columns} = io:columns(),
-    io:format("~n~s~n", [iolist_to_binary([
-        non_zero(Passed, [black, on_green]),
-        non_zero(Failed, [black, on_red]),
-        non_zero(Skipped, [black, on_yellow])
-    ])]).
+    io:format("~n~s~n", [iolist_to_binary(iojoin([
+        non_zero(Passed, green, [i2b(Passed), " tests passed"]),
+        non_zero(Failed, red, [i2b(Failed), " tests failed"]),
+        non_zero(Skipped, yellow, [i2b(Skipped), " tests skipped"])
+    ], "  "))]).
+
+        % non_zero(Passed, [black, on_green]),
+        % non_zero(Failed, [black, on_red]),
+        % non_zero(Skipped, [black, on_yellow])
 
 test_case() ->
     io:format(color:green(".")).
 
 %--- Internal Functions -------------------------------------------------------
 
-non_zero(Int, Colors) ->
-    IntS = [" ", integer_to_list(Int), " "],
+i2b(Integer) -> integer_to_binary(Integer).
+
+non_zero(Int, Colors, IOData) ->
     case Int of
         0 -> [];
-        _ -> colorize(IntS, Colors)
+        _ -> colorize(IOData, Colors)
     end.
 
 colorize(String, []) ->
     String;
 colorize(String, [Color|Colors]) ->
-    colorize(color:Color(String), Colors).
+    colorize(color:Color(String), Colors);
+colorize(String, Color) when is_atom(Color) ->
+    colorize(String, [Color]).
+
+iojoin([], _Separator)         -> [];
+iojoin([[]|List], Separator)   -> iojoin(List, Separator);
+iojoin([Item], _Separator)     -> Item;
+iojoin([Item|List], Separator) -> [Item, Separator, iojoin(List, Separator)].
