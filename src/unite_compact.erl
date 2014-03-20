@@ -11,6 +11,8 @@
 -export([handle_cancel/3]).
 -export([terminate/2]).
 
+-export([ioindent/2]).
+
 % Clear line: "\e[2K"
 
 -record(s, {
@@ -66,29 +68,58 @@ print_failures(Failures) ->
 
 print_failure(Failure) ->
     % io:format("~p~n~n", [Failure]),
-    {Type, Error, Reason, Stacktrace, {M, F, A}} = failure_type(Failure),
-    Ex = lib:format_exception(4, Error, Reason, Stacktrace,
+    {Type, Info, Case} = failure_info(Failure),
+    io:format("~s~n", [color:redb([format_type(Type), " ", format_case(Case)])]),
+    io:format("~s~n", [ioindent(4, Info)]).
+
+failure_info(Failure) ->
+    % io:format("~p~n", [Failure]),
+    case proplists:get_value(status, Failure, proplists:get_value(reason, Failure)) of
+        {error, {error, Assert = {assertEqual_failed, _}, ST}} ->
+            {fail, format_assert(Assert), hd(ST)};
+        {error, {E, R, ST}} ->
+            {M, F, A} = proplists:get_value(source, Failure),
+            {fail, format_exception(E, R, ST), {M, F, A, []}};
+        {abort, {setup_failed, {E, R, ST}}} ->
+            {cancel, format_exception(E, R, ST), hd(ST)}
+    end.
+
+format_assert({assertEqual_failed, Info}) ->
+    Expected = proplists:get_value(expected, Info),
+    Actual = proplists:get_value(value, Info),
+    io_lib:format("~s~n~s~n~s~n~s~n~s", [
+        color:magenta(proplists:get_value(expression, Info)),
+        color:blueb("Expected:"),
+        ioindent(4, io_lib_pretty:print(Expected)),
+        color:yellowb("Actual:"),
+        ioindent(4, io_lib_pretty:print(Actual))
+    ]).
+
+format_exception(Error, Reason, Stacktrace) ->
+    color:red(lib:format_exception(4, Error, Reason, Stacktrace,
         fun(_M, _F, _A) -> false end,
         fun(T, I) ->
             {ok, Cols} = io:columns(),
             io_lib_pretty:print(T, I, Cols - 4, -1)
         end
-    ),
-    Case = io_lib:format("~p:~p/~p", [M, F, A]),
-    io:format("~s ~s~n", [format_type(Type), Case]),
-    io:format("~s~n", [color:red(ioindent(Ex, 4))]).
+    )).
 
-failure_type(Failure) ->
-    case proplists:get_value(status, Failure, proplists:get_value(reason, Failure)) of
-        {error, {E, R, ST}} ->
-            {fail, E, R, ST, proplists:get_value(source, Failure)};
-        {abort, {setup_failed, {E, R, ST}}} ->
-            {M, F, A, _} = hd(ST),
-            {cancel, E, R, ST, {M, F, A}}
+format_type(fail) -> "Failure";
+format_type(cancel) -> "Cancel".
+
+format_case({M, F, A, Info}) ->
+    Function = io_lib:format("in ~p:~p/~p", [M, F, A]),
+    case Info of
+        [] ->
+            Function;
+        Info ->
+            [
+                Function,
+                " (", proplists:get_value(file, Info),
+                ", line ", integer_to_list(proplists:get_value(line, Info)),
+                ")"
+            ]
     end.
-
-format_type(fail) -> color:redb("Failure:");
-format_type(cancel) -> color:yellowb("Cancelled:").
 
 print_summary(Result) ->
     case get_all(Result, [pass, fail, skip, cancel]) of
@@ -126,15 +157,14 @@ iojoin([[]|List], Separator)   -> iojoin(List, Separator);
 iojoin([Item], _Separator)     -> Item;
 iojoin([Item|List], Separator) -> [Item, Separator, iojoin(List, Separator)].
 
-ioindent(IOData, Indent) when is_integer(Indent) ->
+ioindent(Indent, IOData) when is_integer(Indent) ->
     Spacing = lists:duplicate(Indent, 32),
-    [Spacing, ioindent(IOData, Spacing)];
-ioindent([Sub|IOData], Indent) when is_list(Sub) ->
-    [ioindent(Sub, Indent)|ioindent(IOData, Indent)];
-ioindent([10|IOData], Indent) ->
-    [10, Indent|ioindent(IOData, Indent)];
-ioindent([], _Indent) ->
+    [Spacing, ioindent(Spacing, IOData)];
+ioindent(Spacing, [Sub|IOData]) when is_list(Sub) ->
+    [ioindent(Spacing, Sub)|ioindent(Spacing, IOData)];
+ioindent(Spacing, [10|IOData]) ->
+    [10, Spacing|ioindent(Spacing, IOData)];
+ioindent(_Spacing, []) ->
     [];
-ioindent([Other|IOData], Indent) ->
-    [Other|ioindent(IOData, Indent)].
-
+ioindent(Spacing, [Other|IOData]) ->
+    [Other|ioindent(Spacing, IOData)].
