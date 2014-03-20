@@ -92,7 +92,8 @@ print_failure(Failure) ->
 failure_info(Failure) ->
     % io:format("~p~n", [Failure]),
     case proplists:get_value(status, Failure, proplists:get_value(reason, Failure)) of
-        {error, {error, Assert = {assertEqual_failed, _}, ST}} ->
+        {error, {error, Assert = {Type, _}, ST}}
+          when Type == assertEqual_failed; Type == assertion_failed ->
             {fail, format_assert(Assert), hd(ST)};
         {error, {E, R, ST}} ->
             {M, F, A} = proplists:get_value(source, Failure),
@@ -101,7 +102,7 @@ failure_info(Failure) ->
             {cancel, format_exception(E, R, ST), hd(ST)}
     end.
 
-format_assert({assertEqual_failed, Info}) ->
+format_assert({_Type, Info}) ->
     Expected = proplists:get_value(expected, Info),
     Actual = proplists:get_value(value, Info),
     io_lib:format("~s~n~s~n~s~n~s~n~s", [
