@@ -63,81 +63,99 @@ terminate({ok, Result}, State) ->
 
 print_failures([]) -> ok;
 print_failures(Failures) ->
-    io:format("~n"),
-    io:format("~n"),
-    [print_failure(F) || F <- Failures].
+    Indexed = lists:zip(lists:seq(1, length(Failures)), Failures),
+    [print_failure(I, F) || {I, F} <- Indexed].
 
-print_failure(Failure) ->
-    % io:format("~p~n~n", [Failure]),
-    {Type, Info, Case} = failure_info(Failure),
-    io:format("~s~n", [
-        color:redb([format_type(Type),
-        " in ",
-        format_case(Case)])
-    ]),
-    io:format("~s~n", [ioindent(4, Info)]),
-    case proplists:get_value(output, Failure) of
-        <<>> -> ok;
+% Individual Test Case
+
+print_failure(Index, Failure) ->
+    Reason = proplists:get_value(reason, Failure),
+    Info = proplists:get_value(status, Failure, Reason),
+
+    {Header, Details} = format_info(Failure, Info),
+    io:format("~n~n ~p) ~s~n", [Index, Header]),
+    io:format(ioindent(4, Details)),
+    case format_output(Failure) of
         undefined -> ok;
-        Output ->
-            io:format("~s~n", [
-                ioindent(4, [
-                    color:blackb("Output:"),
-                    io_lib:format("~n", []),
-                    ioindent(4, Output)
-                ])
-            ])
+        Output    -> io:format("~n~s", [ioindent(4, Output)])
     end.
 
-failure_info(Failure) ->
-    % io:format("~p~n", [Failure]),
-    case proplists:get_value(status, Failure, proplists:get_value(reason, Failure)) of
-        {error, {error, Assert = {Type, _}, ST}}
-          when Type == assertEqual_failed; Type == assertion_failed ->
-            {fail, format_assert(Assert), hd(ST)};
-        {error, {E, R, ST}} ->
-            {M, F, A} = proplists:get_value(source, Failure),
-            {fail, format_exception(E, R, ST), {M, F, A, []}};
-        {abort, {setup_failed, {E, R, ST}}} ->
-            {cancel, format_exception(E, R, ST), hd(ST)}
-    end.
-
-format_assert({_Type, Info}) ->
+format_info(Failure, {error, {error, {assertion_failed, Info}, ST}}) ->
+    {
+        color:red(format_case(Failure, ST)),
+        [color:redb("Assert failed: "), proplists:get_value(expression, Info)]
+    };
+format_info(Failure, {error, {error, {assertEqual_failed, Info}, ST}}) ->
     Expected = proplists:get_value(expected, Info),
     Actual = proplists:get_value(value, Info),
-    io_lib:format("~s~n~s~n~s~n~s~n~s", [
-        color:magenta(proplists:get_value(expression, Info)),
-        color:blueb("Expected:"),
-        ioindent(4, io_lib_pretty:print(Expected)),
-        color:yellowb("Actual:"),
-        ioindent(4, io_lib_pretty:print(Actual))
-    ]).
+    {ok, Cols} = io:columns(),
+    {
+        color:red(format_case(Failure, ST)),
+        io_lib:format("~s~n~s ~s~n~s ~s", [
+            color:redb("Assert equal failed"),
+            color:blueb("Expected:"),
+            io_lib_pretty:print(Expected, 11, Cols, -1),
+            color:yellowb("  Actual:"),
+            io_lib_pretty:print(Actual, 11, Cols, -1)
+        ])
+    };
+format_info(Failure, {error, {E, R, ST}}) ->
+    {
+        color:red(format_case(Failure, ST)),
+        [
+            color:redb("Exception: "),
+            io_lib:format("~n", []),
+            color:red(format_exception(E, R, ST))
+        ]
+    };
+format_info(Failure, {abort, {Reason, {E, R, ST}}}) ->
+    {
+        color:yellow(format_case(Failure, ST)),
+        [
+            color:yellowb(case Reason of
+                setup_failed -> "Setup failed: ";
+                cleanup_failed -> "Cleanup failed: "
+            end),
+            io_lib:format("~n", []),
+            color:yellow(format_exception(E, R, ST))
+        ]
+    }.
+
+format_case(Failure, ST) ->
+    case proplists:get_value(source, Failure) of
+        {M, F, A} ->
+            {_, _, _, I} = hd(ST),
+            format_stack_line({M, F, A, I});
+        undefined ->
+            format_stack_line(hd(ST))
+    end.
+
+format_stack_line({_M, F, A, I}) ->
+    {File, L} = {proplists:get_value(file, I), proplists:get_value(line, I)},
+    io_lib:format("~p/~p (~s:~p)", [F, A, File, L]).
 
 format_exception(Error, Reason, Stacktrace) ->
-    color:red(lib:format_exception(4, Error, Reason, Stacktrace,
+    lib:format_exception(1, Error, Reason, Stacktrace,
         fun(_M, _F, _A) -> false end,
         fun(T, I) ->
             {ok, Cols} = io:columns(),
-            io_lib_pretty:print(T, I, Cols - 4, -1)
+            io_lib_pretty:print(T, I, Cols, -1)
         end
-    )).
+    ).
 
-format_type(fail) -> "Failure";
-format_type(cancel) -> "Cancel".
-
-format_case({M, F, A, Info}) ->
-    Function = io_lib:format("~p:~p/~p", [M, F, A]),
-    case Info of
-        [] ->
-            Function;
-        Info ->
+format_output(Failure) ->
+    case proplists:get_value(output, Failure) of
+        <<>> -> undefined;
+        undefined -> undefined;
+        Output ->
             [
-                Function,
-                " (", proplists:get_value(file, Info),
-                ", line ", integer_to_list(proplists:get_value(line, Info)),
-                ")"
+                color:blackb("Output:"),
+                io_lib:format("~n", []),
+                ioindent(2, Output)
             ]
     end.
+
+% Summary
 
 print_summary(Result, State) ->
     case get_all(Result, [pass, fail, skip, cancel]) of
@@ -147,17 +165,19 @@ print_summary(Result, State) ->
             Seconds = timer:now_diff(now(), State#s.start) / 1000000,
             Time = float_to_list(Seconds, [{decimals, 2}, compact]),
             io:format("~n~s~n", [iolist_to_binary(iojoin([
-                non_zero(Pass, green, plural(Pass, "passed")),
-                non_zero(Fail, red, plural(Fail, "failed")),
-                non_zero(Skip, yellow, plural(Skip, "skipped")),
-                non_zero(Cancel, yellow, plural(Cancel, "cancelled")),
+                non_zero(Pass, green, plural(Pass, "test", "passed")),
+                non_zero(Fail, red, plural(Fail, "test", "failed")),
+                non_zero(Skip, yellow, plural(Skip, "test", "skipped")),
+                non_zero(Cancel, yellow, plural(Cancel, "fixture", "cancelled")),
                 color:blackb(io_lib:format("(~s s)", [Time]))
             ], "  "))])
     end.
 
-plural(Number, Postfix) ->
-    Text = case Number of 1 -> "test"; Number -> "tests" end,
+plural(Number, Noun, Postfix) ->
+    Text = case Number of 1 -> Noun; Number -> [Noun, "s"] end,
     [i2b(Number), " ", Text, " ", Postfix].
+
+% Utilities
 
 get_all(Proplist, Keys) ->
     [proplists:get_value(K, Proplist) || K <- Keys].
