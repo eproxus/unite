@@ -64,7 +64,8 @@ terminate({ok, Result}, State) ->
 print_failures([]) -> ok;
 print_failures(Failures) ->
     Indexed = lists:zip(lists:seq(1, length(Failures)), Failures),
-    [print_failure(I, F) || {I, F} <- Indexed].
+    [print_failure(I, F) || {I, F} <- Indexed],
+    io:format("~n").
 
 % Individual Test Case
 
@@ -122,6 +123,16 @@ format_info(Failure, {abort, {Reason, {E, R, ST}}}) ->
     }.
 
 format_case(Failure, ST) ->
+    case proplists:get_value(desc, Failure) of
+        undefined -> format_source(Failure, ST);
+        Desc ->
+            io_lib:format("~s~n~s", [
+                Desc,
+                ioindent(4, format_source(Failure, ST))
+            ])
+    end.
+
+format_source(Failure, ST) ->
     case proplists:get_value(source, Failure) of
         {M, F, A} ->
             {_, _, _, I} = hd(ST),
