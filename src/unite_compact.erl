@@ -16,6 +16,7 @@
 % Clear line: "\e[2K"
 
 -record(s, {
+    start = now(),
     failures = []
 }).
 
@@ -56,7 +57,7 @@ handle_cancel(_Type, _Data, State) ->
 
 terminate({ok, Result}, State) ->
     print_failures(State#s.failures),
-    print_summary(Result).
+    print_summary(Result, State).
 
 %--- Internal Functions -------------------------------------------------------
 
@@ -137,16 +138,19 @@ format_case({M, F, A, Info}) ->
             ]
     end.
 
-print_summary(Result) ->
+print_summary(Result, State) ->
     case get_all(Result, [pass, fail, skip, cancel]) of
         [0, 0, 0, 0] ->
             ok;
         [Pass, Fail, Skip, Cancel] ->
+            Seconds = timer:now_diff(now(), State#s.start) / 1000000,
+            Time = float_to_list(Seconds, [{decimals, 2}, compact]),
             io:format("~n~s~n", [iolist_to_binary(iojoin([
                 non_zero(Pass, green, plural(Pass, "passed")),
                 non_zero(Fail, red, plural(Fail, "failed")),
                 non_zero(Skip, yellow, plural(Skip, "skipped")),
-                non_zero(Cancel, yellow, plural(Cancel, "cancelled"))
+                non_zero(Cancel, yellow, plural(Cancel, "cancelled")),
+                color:blackb(io_lib:format("(~s s)", [Time]))
             ], "  "))])
     end.
 
