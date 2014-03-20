@@ -69,8 +69,24 @@ print_failures(Failures) ->
 print_failure(Failure) ->
     % io:format("~p~n~n", [Failure]),
     {Type, Info, Case} = failure_info(Failure),
-    io:format("~s~n", [color:redb([format_type(Type), " ", format_case(Case)])]),
-    io:format("~s~n", [ioindent(4, Info)]).
+    io:format("~s~n", [
+        color:redb([format_type(Type),
+        " in ",
+        format_case(Case)])
+    ]),
+    io:format("~s~n", [ioindent(4, Info)]),
+    case proplists:get_value(output, Failure) of
+        undefined ->
+            ok;
+        Output ->
+            io:format("~s~n", [
+                ioindent(4, [
+                    color:blackb("Output:"),
+                    io_lib:format("~n", []),
+                    ioindent(4, Output)
+                ])
+            ])
+    end.
 
 failure_info(Failure) ->
     % io:format("~p~n", [Failure]),
@@ -108,7 +124,7 @@ format_type(fail) -> "Failure";
 format_type(cancel) -> "Cancel".
 
 format_case({M, F, A, Info}) ->
-    Function = io_lib:format("in ~p:~p/~p", [M, F, A]),
+    Function = io_lib:format("~p:~p/~p", [M, F, A]),
     case Info of
         [] ->
             Function;
@@ -158,13 +174,15 @@ iojoin([Item], _Separator)     -> Item;
 iojoin([Item|List], Separator) -> [Item, Separator, iojoin(List, Separator)].
 
 ioindent(Indent, IOData) when is_integer(Indent) ->
-    Spacing = lists:duplicate(Indent, 32),
+    Spacing = iolist_to_binary(lists:duplicate(Indent, 32)),
     [Spacing, ioindent(Spacing, IOData)];
-ioindent(Spacing, [Sub|IOData]) when is_list(Sub) ->
-    [ioindent(Spacing, Sub)|ioindent(Spacing, IOData)];
 ioindent(Spacing, [10|IOData]) ->
     [10, Spacing|ioindent(Spacing, IOData)];
+ioindent(Spacing, Binary) when is_binary(Binary) ->
+    binary:replace(Binary, <<"\n">>, <<"\n", Spacing/binary>>, [global]);
+ioindent(Spacing, [Sub|IOData]) ->
+    [ioindent(Spacing, Sub)|ioindent(Spacing, IOData)];
 ioindent(_Spacing, []) ->
     [];
-ioindent(Spacing, [Other|IOData]) ->
-    [Other|ioindent(Spacing, IOData)].
+ioindent(_Spacing, Other) ->
+    Other.
