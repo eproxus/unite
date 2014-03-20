@@ -143,12 +143,16 @@ print_summary(Result) ->
             ok;
         [Pass, Fail, Skip, Cancel] ->
             io:format("~n~s~n", [iolist_to_binary(iojoin([
-                non_zero(Pass, green, [i2b(Pass), " tests passed"]),
-                non_zero(Fail, red, [i2b(Fail), " tests failed"]),
-                non_zero(Skip, yellow, [i2b(Skip), " tests skipped"]),
-                non_zero(Cancel, yellow, [i2b(Cancel), " tests cancelled"])
+                non_zero(Pass, green, plural(Pass, "passed")),
+                non_zero(Fail, red, plural(Fail, "failed")),
+                non_zero(Skip, yellow, plural(Skip, "skipped")),
+                non_zero(Cancel, yellow, plural(Cancel, "cancelled"))
             ], "  "))])
     end.
+
+plural(Number, Postfix) ->
+    Text = case Number of 1 -> "test"; Number -> "tests" end,
+    [i2b(Number), " ", Text, " ", Postfix].
 
 get_all(Proplist, Keys) ->
     [proplists:get_value(K, Proplist) || K <- Keys].
