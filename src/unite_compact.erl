@@ -68,7 +68,7 @@ print_failures(Failures) ->
     [print_failure(F) || F <- Failures].
 
 print_failure(Failure) ->
-    % io:format("~p~n~n", [Failure]),
+    io:format("~p~n~n", [Failure]),
     {Type, Info, Case} = failure_info(Failure),
     io:format("~s~n", [
         color:redb([format_type(Type),
@@ -77,8 +77,8 @@ print_failure(Failure) ->
     ]),
     io:format("~s~n", [ioindent(4, Info)]),
     case proplists:get_value(output, Failure) of
-        undefined ->
-            ok;
+        <<>> -> ok;
+        undefined -> ok;
         Output ->
             io:format("~s~n", [
                 ioindent(4, [
