@@ -50,8 +50,13 @@ handle_end(_Type, _Data, State) ->
     State.
 
 handle_cancel(group, Data, State) ->
-    io:format(color:yellow("C")),
-    State#s{failures = State#s.failures ++ [Data]};
+    case proplists:get_value(reason, Data) of
+        undefined ->
+            State;
+        _Else ->
+            io:format(color:yellow("C")),
+            State#s{failures = State#s.failures ++ [Data]}
+    end;
 handle_cancel(_Type, _Data, State) ->
     State.
 
@@ -117,6 +122,22 @@ format_info(Failure, {abort, {Reason, {E, R, ST}}}) ->
                 setup_failed -> "Setup failed: ";
                 cleanup_failed -> "Cleanup failed: "
             end),
+            io_lib:format("~n", []),
+            color:yellow(format_exception(E, R, ST))
+        ]
+    };
+format_info(_Failure, {abort, {bad_test, Test}}) ->
+    {
+        color:yellow("Bad test specification:"),
+        [
+            color:yellow(io_lib:format("~p", [Test]))
+        ]
+    };
+format_info(Failure, {abort, {generator_failed, {MFA, {E, R, ST}}}}) ->
+    {
+        color:yellow(format_case(Failure, [find(MFA, ST)])),
+        [
+            color:yellowb("Generator failed: "),
             io_lib:format("~n", []),
             color:yellow(format_exception(E, R, ST))
         ]
@@ -226,3 +247,7 @@ ioindent(_Spacing, []) ->
     [];
 ioindent(_Spacing, Other) ->
     Other.
+
+find(_MFA, [])                             -> undefined;
+find({M, F, A}, [{M, F, A, _I} = Line|ST]) -> Line;
+find(MFA, [_Line|ST])                      -> find(MFA, ST).
