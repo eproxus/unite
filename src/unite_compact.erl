@@ -158,7 +158,6 @@ format_source(Failure, ST) ->
         undefined ->
             format_stack_line(hd(ST));
         MFA ->
-            io:format("~p~n~p~n", [MFA, ST]),
             format_stack_line(find(MFA, ST))
     end.
 
