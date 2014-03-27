@@ -155,11 +155,11 @@ format_case(Failure, ST) ->
 
 format_source(Failure, ST) ->
     case proplists:get_value(source, Failure) of
-        {M, F, A} ->
-            {_, _, _, I} = hd(ST),
-            format_stack_line({M, F, A, I});
         undefined ->
-            format_stack_line(hd(ST))
+            format_stack_line(hd(ST));
+        MFA ->
+            io:format("~p~n~p~n", [MFA, ST]),
+            format_stack_line(find(MFA, ST))
     end.
 
 format_stack_line({_M, F, A, I}) ->
@@ -248,6 +248,13 @@ ioindent(_Spacing, []) ->
 ioindent(_Spacing, Other) ->
     Other.
 
-find(_MFA, [])                             -> undefined;
-find({M, F, A}, [{M, F, A, _I} = Line|ST]) -> Line;
-find(MFA, [_Line|ST])                      -> find(MFA, ST).
+find(MFA, ST) -> find(MFA, ST, undefined).
+
+find(_MFA, [], Match) ->
+   Match;
+find({M, F, A}, [{M, F, A, _I} = Line|_ST], _Match) ->
+   Line;
+find({M, _, _} = MFA, [{M, _, _, _I} = Line|ST], _Match) ->
+   find(MFA, ST, Line);
+find(MFA, [_Line|ST], Match) ->
+   find(MFA, ST, Match).
