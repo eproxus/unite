@@ -139,7 +139,7 @@ format_info(_Failure, {abort, {bad_test, Test}}) ->
     };
 format_info(Failure, {abort, {generator_failed, {MFA, {E, R, ST}}}}) ->
     {
-        color:yellow(format_case(Failure, [find(MFA, ST)])),
+        color:yellow(format_case(Failure, [add_info(MFA, ST)])),
         [
             color:yellowb("Generator failed: "),
             io_lib:format("~n", []),
@@ -178,7 +178,7 @@ format_source(Failure, ST) ->
         undefined ->
             format_stack_line(hd(ST));
         MFA ->
-            format_stack_line(find(MFA, ST))
+            format_stack_line(add_info(MFA, ST))
     end.
 
 format_stack_line({_M, F, A, I}) ->
@@ -267,13 +267,6 @@ ioindent(_Spacing, []) ->
 ioindent(_Spacing, Other) ->
     Other.
 
-find(MFA, ST) -> find(MFA, ST, undefined).
-
-find(_MFA, [], Match) ->
-   Match;
-find({M, F, A}, [{M, F, A, _I} = Line|_ST], _Match) ->
-   Line;
-find({M, _, _} = MFA, [{M, _, _, _I} = Line|ST], _Match) ->
-   find(MFA, ST, Line);
-find(MFA, [_Line|ST], Match) ->
-   find(MFA, ST, Match).
+add_info(_MFA, [])                      -> [];
+add_info({M, F, A}, [{M, _, _, I}|_ST]) -> {M, F, A, I};
+add_info(MFA, [_Line|ST])               -> add_info(MFA, ST).
