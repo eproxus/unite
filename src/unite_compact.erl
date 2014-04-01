@@ -102,9 +102,9 @@ format_info(Failure, {error, {error, {assertEqual_failed, Info}, ST}}) ->
         io_lib:format("~s ~s~n~s", [
             color:redb("Assert equal failed:"),
             [
-                color:red("[-Expected-]"),
+                color:blueb("[-Expected-]"),
                 " ",
-                color:green("[+Actual+]")
+                color:yellowb("[+Actual+]")
             ],
             format_diff(Diff)
         ])
@@ -159,9 +159,9 @@ format_diff([]) ->
 format_diff([{eq, Str}|Rest]) ->
     [Str|format_diff(Rest)];
 format_diff([{del, Str}|Rest]) ->
-    [color:red(["[-", Str, "-]"])|format_diff(Rest)];
+    [color:blue(["[-", Str, "-]"])|format_diff(Rest)];
 format_diff([{ins, Str}|Rest]) ->
-    [color:green(["[+", Str, "+]"])|format_diff(Rest)].
+    [color:yellow(["[+", Str, "+]"])|format_diff(Rest)].
 
 format_case(Failure, ST) ->
     case proplists:get_value(desc, Failure) of
