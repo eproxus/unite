@@ -94,15 +94,19 @@ format_info(Failure, {error, {error, {assertion_failed, Info}, ST}}) ->
 format_info(Failure, {error, {error, {assertEqual_failed, Info}, ST}}) ->
     Expected = proplists:get_value(expected, Info),
     Actual = proplists:get_value(value, Info),
-    {ok, Cols} = io:columns(),
+    Exp = diff_prep_term(Expected),
+    Act = diff_prep_term(Actual),
+    Diff = tdiff:diff(Act, Exp),
     {
         color:red(format_case(Failure, ST)),
-        io_lib:format("~s~n~s ~s~n~s ~s", [
-            color:redb("Assert equal failed"),
-            color:blueb("Expected:"),
-            io_lib_pretty:print(Expected, 11, Cols, -1),
-            color:yellowb("  Actual:"),
-            io_lib_pretty:print(Actual, 11, Cols, -1)
+        io_lib:format("~s ~s~n~s", [
+            color:redb("Assert equal failed:"),
+            [
+                color:red("[-Expected-]"),
+                " ",
+                color:green("[+Actual+]")
+            ],
+            format_diff(Diff)
         ])
     };
 format_info(Failure, {error, {E, R, ST}}) ->
@@ -142,6 +146,22 @@ format_info(Failure, {abort, {generator_failed, {MFA, {E, R, ST}}}}) ->
             color:yellow(format_exception(E, R, ST))
         ]
     }.
+
+diff_prep_term(Term) ->
+    {ok, Cols} = io:columns(),
+    Pretty = io_lib_pretty:print(Term, 1, Cols, -1),
+    Flat = iolist_to_binary(Pretty),
+    TermSplit = "([,\\[\\]\\{\\}])",
+    re:split(Flat, TermSplit, [trim]).
+
+format_diff([]) ->
+    [];
+format_diff([{eq, Str}|Rest]) ->
+    [Str|format_diff(Rest)];
+format_diff([{del, Str}|Rest]) ->
+    [color:red(["[-", Str, "-]"])|format_diff(Rest)];
+format_diff([{ins, Str}|Rest]) ->
+    [color:green(["[+", Str, "+]"])|format_diff(Rest)].
 
 format_case(Failure, ST) ->
     case proplists:get_value(desc, Failure) of
