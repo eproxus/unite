@@ -96,7 +96,7 @@ format_info(Failure, {error, {error, {assertEqual_failed, Info}, ST}}) ->
     Actual = proplists:get_value(value, Info),
     Exp = diff_prep_term(Expected),
     Act = diff_prep_term(Actual),
-    Diff = tdiff:diff(Act, Exp),
+    Diff = tdiff:diff(Exp, Act),
     {
         color:red(format_case(Failure, ST)),
         io_lib:format("~s ~s~n~s", [
