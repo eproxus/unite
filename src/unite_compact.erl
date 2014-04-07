@@ -181,9 +181,13 @@ format_source(Failure, ST) ->
             format_stack_line(add_info(MFA, ST))
     end.
 
-format_stack_line({_M, F, A, I}) ->
-    {File, L} = {proplists:get_value(file, I), proplists:get_value(line, I)},
-    io_lib:format("~p/~p (~s:~p)", [F, A, File, L]).
+format_stack_line({M, F, A, I}) ->
+    case {proplists:get_value(file, I), proplists:get_value(line, I)} of
+        {undefined, undefined} ->
+            io_lib:format("~p:~p/~p (line number not available)", [M, F, A]);
+        {File, L} ->
+            io_lib:format("~p/~p (~s:~p)", [F, A, File, L])
+    end.
 
 format_exception(Error, Reason, Stacktrace) ->
     lib:format_exception(1, Error, Reason, Stacktrace,
@@ -267,6 +271,6 @@ ioindent(_Spacing, []) ->
 ioindent(_Spacing, Other) ->
     Other.
 
-add_info(_MFA, [])                      -> [];
+add_info({M, F, A}, [])                 -> {M, F, A, []};
 add_info({M, F, A}, [{M, _, _, I}|_ST]) -> {M, F, A, I};
 add_info(MFA, [_Line|ST])               -> add_info(MFA, ST).
