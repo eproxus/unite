@@ -109,6 +109,36 @@ format_info(Failure, {error, {error, {assertEqual_failed, Info}, ST}}) ->
             format_diff(Diff)
         ])
     };
+format_info(Failure, {error, {error, {assertException_failed, Info}, ST}}) ->
+    case proplists:get_value(unexpected_exception, Info) of
+        undefined ->
+            Success = proplists:get_value(unexpected_success, Info),
+            Term = format_term(Success, 22, 4),
+            {
+                color:red(format_case(Failure, ST)),
+                case multiline(Term) of
+                    true ->
+                        io_lib:format("~s~n~s", [
+                            color:redb("Unexpected success:"),
+                            color:red(format_term(Success, 0, 4))
+                        ]);
+                    false ->
+                        [
+                            color:redb("Unexpected success:"),
+                            " ",
+                            color:red(Term)
+                        ]
+                end
+            };
+        {E, R, NewST} ->
+            {
+                color:red(format_case(Failure, ST)),
+                io_lib:format("~s~n~s", [
+                    color:redb("Unexpected exception:"),
+                    color:red(format_exception(E, R, NewST))
+                ])
+            }
+    end;
 format_info(Failure, {error, {E, R, ST}}) ->
     {
         color:red(format_case(Failure, ST)),
@@ -148,11 +178,14 @@ format_info(Failure, {abort, {generator_failed, {MFA, {E, R, ST}}}}) ->
     }.
 
 diff_prep_term(Term) ->
-    {ok, Cols} = io:columns(),
-    Pretty = io_lib_pretty:print(Term, 1, Cols, -1),
+    Pretty = format_term(Term, 0, 0),
     Flat = iolist_to_binary(Pretty),
     TermSplit = "([,\\[\\]\\{\\}])",
     re:split(Flat, TermSplit, [trim]).
+
+format_term(Term, Indent, Outer) ->
+    {ok, Cols} = io:columns(),
+    io_lib_pretty:print(Term, Indent, Cols - Outer, -1).
 
 format_diff([]) ->
     [];
@@ -274,3 +307,14 @@ ioindent(_Spacing, Other) ->
 add_info({M, F, A}, [])                 -> {M, F, A, []};
 add_info({M, F, A}, [{M, _, _, I}|_ST]) -> {M, F, A, I};
 add_info(MFA, [_Line|ST])               -> add_info(MFA, ST).
+
+multiline([10|_IOData]) ->
+    true;
+multiline([List|IOData]) when is_list(List) ->
+    multiline(List) orelse multiline(IOData);
+multiline([_|IOData]) ->
+    multiline(IOData);
+multiline(IOData) when is_binary(IOData) ->
+    binary:match(IOData, <<"\n">>) =/= nomatch;
+multiline([]) ->
+    false.
