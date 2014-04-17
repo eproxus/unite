@@ -109,6 +109,22 @@ format_info(Failure, {error, {error, {assertEqual_failed, Info}, ST}}) ->
             format_diff(Diff)
         ])
     };
+format_info(Failure, {error, {error, {assertMatch_failed, Info}, ST}}) ->
+    Expr = proplists:get_value(expression, Info),
+    Pattern = proplists:get_value(pattern, Info),
+    Value = proplists:get_value(value, Info),
+    {
+        color:red(format_case(Failure, ST)),
+        io_lib:format("~s~n~s~n~s~n~s~n~s~n~s~n~s~n", [
+            color:redb("Assert match failed:"),
+            color:magentab("Expression:"),
+            ioindent(4, format_macro_string(Expr)),
+            color:blueb("Pattern:"),
+            ioindent(4, format_macro_string(Pattern)),
+            color:yellowb("Actual:"),
+            ioindent(4, format_term(Value, 0, 8))
+        ])
+    };
 format_info(Failure, {error, {error, {assertException_failed, Info}, ST}}) ->
     case proplists:get_value(unexpected_exception, Info) of
         undefined ->
@@ -242,6 +258,11 @@ format_output(Failure) ->
                 ioindent(2, Output)
             ]
     end.
+
+format_macro_string(Str) ->
+    {ok, S, _} = erl_scan:string(Str ++ "."),
+    {ok, P} = erl_parse:parse_exprs(S),
+    erl_pp:exprs(P).
 
 % Summary
 
