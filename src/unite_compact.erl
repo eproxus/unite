@@ -87,9 +87,10 @@ print_failure(Index, Failure) ->
     end.
 
 format_info(Failure, {error, {error, {assertion_failed, Info}, ST}}) ->
+    Expr = proplists:get_value(expression, Info),
     {
         color:red(format_case(Failure, ST)),
-        [color:redb("Assert failed: "), proplists:get_value(expression, Info)]
+        [color:redb("Assert failed: "), format_macro_string(Expr)]
     };
 format_info(Failure, {error, {error, {assertEqual_failed, Info}, ST}}) ->
     Expected = proplists:get_value(expected, Info),
@@ -100,7 +101,7 @@ format_info(Failure, {error, {error, {assertEqual_failed, Info}, ST}}) ->
     {
         color:red(format_case(Failure, ST)),
         io_lib:format("~s ~s~n~s", [
-            color:redb("Assert equal failed:"),
+            color:redb("Assert equal failed!"),
             [
                 color:blueb("-Expected-"),
                 " ",
@@ -116,7 +117,7 @@ format_info(Failure, {error, {error, {assertMatch_failed, Info}, ST}}) ->
     {
         color:red(format_case(Failure, ST)),
         io_lib:format("~s~n~s~n~s~n~s~n~s~n~s~n~s~n", [
-            color:redb("Assert match failed:"),
+            color:redb("Assert match failed!"),
             color:magentab("Expression:"),
             ioindent(4, format_macro_string(Expr)),
             color:blueb("Pattern:"),
@@ -135,7 +136,7 @@ format_info(Failure, {error, {error, {assertException_failed, Info}, ST}}) ->
                 case multiline(Term) of
                     true ->
                         io_lib:format("~s~n~s", [
-                            color:redb("Unexpected success:"),
+                            color:redb("Unexpected success!"),
                             color:red(format_term(Success, 0, 4))
                         ]);
                     false ->
@@ -159,7 +160,7 @@ format_info(Failure, {error, {E, R, ST}}) ->
     {
         color:red(format_case(Failure, ST)),
         [
-            color:redb("Exception: "),
+            color:redb("Uncaught exception! "),
             io_lib:format("~n", []),
             color:red(format_exception(E, R, ST))
         ]
@@ -187,7 +188,7 @@ format_info(Failure, {abort, {generator_failed, {MFA, {E, R, ST}}}}) ->
     {
         color:yellow(format_case(Failure, [add_info(MFA, ST)])),
         [
-            color:yellowb("Generator failed: "),
+            color:yellowb("Generator failed!"),
             io_lib:format("~n", []),
             color:yellow(format_exception(E, R, ST))
         ]
