@@ -261,9 +261,14 @@ format_output(Failure) ->
     end.
 
 format_macro_string(Str) ->
-    {ok, S, _} = erl_scan:string(Str ++ "."),
-    {ok, P} = erl_parse:parse_exprs(S),
-    erl_pp:exprs(P).
+    case lists:member($?, Str) of
+        true ->
+            [C || C <- Str, C =/= $ ];
+        false ->
+            {ok, S, _} = erl_scan:string(Str ++ "."),
+            {ok, P} = erl_parse:parse_exprs(S),
+            erl_pp:exprs(P)
+    end.
 
 % Summary
 
