@@ -278,13 +278,12 @@ print_summary(Result, State) ->
             ok;
         [Pass, Fail, Skip, Cancel] ->
             Seconds = timer:now_diff(now(), State#s.start) / 1000000,
-            Time = float_to_list(Seconds, [{decimals, 2}, compact]),
             io:format("~n~s~n", [iolist_to_binary(iojoin([
                 non_zero(Pass, green, plural(Pass, "test", "passed")),
                 non_zero(Fail, red, plural(Fail, "test", "failed")),
                 non_zero(Skip, yellow, plural(Skip, "test", "skipped")),
                 non_zero(Cancel, yellow, plural(Cancel, "fixture", "cancelled")),
-                color:blackb(io_lib:format("(~s s)", [Time]))
+                color:blackb(io_lib:format("(~.2f s)", [Seconds]))
             ], "  "))])
     end.
 
@@ -297,7 +296,7 @@ plural(Number, Noun, Postfix) ->
 get_all(Proplist, Keys) ->
     [proplists:get_value(K, Proplist) || K <- Keys].
 
-i2b(Integer) -> integer_to_binary(Integer).
+i2b(Integer) -> list_to_binary(integer_to_list(Integer)).
 
 non_zero(Int, Colors, IOData) ->
     case Int of
