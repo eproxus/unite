@@ -197,7 +197,7 @@ format_info(Failure, {abort, {generator_failed, {MFA, {E, R, ST}}}}) ->
 diff_prep_term(Term) ->
     Pretty = format_term(Term, 0, 0),
     Flat = iolist_to_binary(Pretty),
-    TermSplit = "([,\\[\\]\\{\\}])",
+    TermSplit = "([,\\[\\]\\{\\}]|\\s+=>\\s+)",
     re:split(Flat, TermSplit, [trim]).
 
 format_term(Term, Indent, Outer) ->
