@@ -17,7 +17,9 @@
 
 -record(s, {
     start = now(),
-    failures = []
+    cases = [],
+    profile = false,
+    profile_max = 10
 }).
 
 %--- EUnit Callbacks ----------------------------------------------------------
@@ -28,40 +30,48 @@ start() ->
 start(Options) ->
     eunit_listener:start(?MODULE, Options).
 
-init(_Options) ->
-    #s{}.
+init(Options) ->
+    case get(profile, Options) of
+        undefined ->
+            #s{};
+        true ->
+            #s{profile = true};
+        Max when is_integer(Max), Max >= 0 ->
+            #s{profile = true, profile_max = Max}
+    end.
 
 handle_begin(_Type, _Data, State) ->
     State.
 
 handle_end(test, Data, State) ->
-    case proplists:get_value(status, Data) of
-        ok ->
-            io:format(color:green(".")),
-            State;
-        skip ->
-            io:format(color:yellow("S")),
-            State;
-        {error, _} ->
-            io:format(color:redb("F")),
-            State#s{failures = State#s.failures ++ [Data]}
-    end;
+    case get(status, Data) of
+        ok         -> io:format(color:green("."));
+        skip       -> io:format(color:yellow("S"));
+        {error, _} -> io:format(color:redb("F"))
+    end,
+    State#s{cases = State#s.cases ++ [Data]};
 handle_end(_Type, _Data, State) ->
     State.
 
 handle_cancel(group, Data, State) ->
-    case proplists:get_value(reason, Data) of
+    case get(reason, Data) of
         undefined ->
             State;
         _Else ->
             io:format(color:yellow("C")),
-            State#s{failures = State#s.failures ++ [Data]}
+            State#s{cases = State#s.cases ++ [Data]}
     end;
 handle_cancel(_Type, _Data, State) ->
     State.
 
-terminate({ok, Result}, State) ->
-    print_failures(State#s.failures),
+terminate({ok, Result}, #s{cases = Cases} = State) ->
+    print_failures(lists:filter(
+        fun(C) ->
+            case get(status, C) of {error, _} -> true; _ -> false end
+        end,
+        Cases
+    )),
+    print_times(State),
     print_summary(Result, State).
 
 %--- Internal Functions -------------------------------------------------------
@@ -75,8 +85,8 @@ print_failures(Failures) ->
 % Individual Test Case
 
 print_failure(Index, Failure) ->
-    Reason = proplists:get_value(reason, Failure),
-    Info = proplists:get_value(status, Failure, Reason),
+    Reason = get(reason, Failure),
+    Info = get(status, Failure, Reason),
 
     {Header, Details} = format_info(Failure, Info),
     io:format("~n~n ~p) ~s~n", [Index, Header]),
@@ -87,14 +97,14 @@ print_failure(Index, Failure) ->
     end.
 
 format_info(Failure, {error, {error, {assertion_failed, Info}, ST}}) ->
-    Expr = proplists:get_value(expression, Info),
+    Expr = get(expression, Info),
     {
         color:red(format_case(Failure, ST)),
         [color:redb("Assert failed: "), format_macro_string(Expr)]
     };
 format_info(Failure, {error, {error, {assertEqual_failed, Info}, ST}}) ->
-    Expected = proplists:get_value(expected, Info),
-    Actual = proplists:get_value(value, Info),
+    Expected = get(expected, Info),
+    Actual = get(value, Info),
     Exp = diff_prep_term(Expected),
     Act = diff_prep_term(Actual),
     Diff = tdiff:diff(Exp, Act),
@@ -111,9 +121,9 @@ format_info(Failure, {error, {error, {assertEqual_failed, Info}, ST}}) ->
         ])
     };
 format_info(Failure, {error, {error, {assertMatch_failed, Info}, ST}}) ->
-    Expr = proplists:get_value(expression, Info),
-    Pattern = proplists:get_value(pattern, Info),
-    Value = proplists:get_value(value, Info),
+    Expr = get(expression, Info),
+    Pattern = get(pattern, Info),
+    Value = get(value, Info),
     {
         color:red(format_case(Failure, ST)),
         io_lib:format("~s~n~s~n~s~n~s~n~s~n~s~n~s~n", [
@@ -127,9 +137,9 @@ format_info(Failure, {error, {error, {assertMatch_failed, Info}, ST}}) ->
         ])
     };
 format_info(Failure, {error, {error, {assertException_failed, Info}, ST}}) ->
-    case proplists:get_value(unexpected_exception, Info) of
+    case get(unexpected_exception, Info) of
         undefined ->
-            Success = proplists:get_value(unexpected_success, Info),
+            Success = get(unexpected_success, Info),
             Term = format_term(Success, 22, 4),
             {
                 color:red(format_case(Failure, ST)),
@@ -214,7 +224,7 @@ format_diff([{ins, Str}|Rest]) ->
     [color:yellow(["+", Str, "+"])|format_diff(Rest)].
 
 format_case(Failure, ST) ->
-    case proplists:get_value(desc, Failure) of
+    case get(desc, Failure) of
         undefined -> format_source(Failure, ST);
         Desc ->
             io_lib:format("~s~n~s", [
@@ -224,7 +234,7 @@ format_case(Failure, ST) ->
     end.
 
 format_source(Failure, ST) ->
-    case proplists:get_value(source, Failure) of
+    case get(source, Failure) of
         undefined ->
             format_stack_line(hd(ST));
         MFA ->
@@ -232,9 +242,9 @@ format_source(Failure, ST) ->
     end.
 
 format_stack_line({M, F, A, I}) ->
-    case {proplists:get_value(file, I), proplists:get_value(line, I)} of
+    case {get(file, I), get(line, I)} of
         {undefined, undefined} ->
-            io_lib:format("~p:~p/~p (line number not available)", [M, F, A]);
+            io_lib:format("~p:~p/~p", [M, F, A]);
         {File, L} ->
             io_lib:format("~p/~p (~s:~p)", [F, A, File, L])
     end.
@@ -249,7 +259,7 @@ format_exception(Error, Reason, Stacktrace) ->
     ).
 
 format_output(Failure) ->
-    case proplists:get_value(output, Failure) of
+    case get(output, Failure) of
         <<>> -> undefined;
         undefined -> undefined;
         Output ->
@@ -270,6 +280,26 @@ format_macro_string(Str) ->
             erl_pp:exprs(P)
     end.
 
+% Profiling
+
+print_times(#s{profile_max = Max, cases = Cases, profile = P}) when P ->
+    Times = [{get(time, C), format_case(C, [])} || C <- Cases],
+    Top = lists:sublist(lists:reverse(lists:sort(Times)), Max),
+    case length(Top) of
+        0 ->
+            ok;
+        N ->
+            Title = colorize(io_lib:format("Top ~p slowest tests:", [N]), yellow),
+            io:format("~n~n  ~s~n", [Title]),
+            [print_time(T, C) || {T, C} <- Top]
+    end;
+print_times(_State) ->
+    ok.
+
+print_time(Ms, Case) ->
+    Time = colorize(string:left(format_time(Ms), 10), red),
+    io:format("    ~s ~s~n", [Time, Case]).
+
 % Summary
 
 print_summary(Result, State) ->
@@ -277,14 +307,14 @@ print_summary(Result, State) ->
         [0, 0, 0, 0] ->
             ok;
         [Pass, Fail, Skip, Cancel] ->
-            Seconds = timer:now_diff(now(), State#s.start) / 1000000,
-            Time = float_to_list(Seconds, [{decimals, 2}, compact]),
+            Ms = timer:now_diff(now(), State#s.start) / 1000,
+            Time = format_time(Ms),
             io:format("~n~s~n", [iolist_to_binary(iojoin([
                 non_zero(Pass, green, plural(Pass, "test", "passed")),
                 non_zero(Fail, red, plural(Fail, "test", "failed")),
                 non_zero(Skip, yellow, plural(Skip, "test", "skipped")),
                 non_zero(Cancel, yellow, plural(Cancel, "fixture", "cancelled")),
-                color:blackb(io_lib:format("(~s s)", [Time]))
+                color:blackb(io_lib:format("(~s)", [Time]))
             ], "  "))])
     end.
 
@@ -294,8 +324,12 @@ plural(Number, Noun, Postfix) ->
 
 % Utilities
 
+format_time(Ms) ->
+    Seconds = float_to_list(Ms / 1000, [{decimals, 2}, compact]),
+    lists:flatten(io_lib:format("~s s", [Seconds])).
+
 get_all(Proplist, Keys) ->
-    [proplists:get_value(K, Proplist) || K <- Keys].
+    [get(K, Proplist) || K <- Keys].
 
 i2b(Integer) -> integer_to_binary(Integer).
 
@@ -345,3 +379,6 @@ multiline(IOData) when is_binary(IOData) ->
     binary:match(IOData, <<"\n">>) =/= nomatch;
 multiline([]) ->
     false.
+
+get(Key, Proplist)          -> proplists:get_value(Key, Proplist).
+get(Key, Proplist, Default) -> proplists:get_value(Key, Proplist, Default).
