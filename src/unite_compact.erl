@@ -322,14 +322,12 @@ plural(Number, Noun, Postfix) ->
 
 % Utilities
 
-format_time(Ms) ->
-    Seconds = float_to_list(Ms / 1000, [{decimals, 2}, compact]),
-    lists:flatten(io_lib:format("~s s", [Seconds])).
+format_time(Ms) -> io_lib:format("~.2f s", [Ms / 1000]).
 
 get_all(Proplist, Keys) ->
     [get(K, Proplist) || K <- Keys].
 
-i2b(Integer) -> integer_to_binary(Integer).
+i2b(Integer) -> list_to_binary(integer_to_list(Integer)).
 
 non_zero(Int, Colors, IOData) ->
     case Int of
