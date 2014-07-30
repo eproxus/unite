@@ -211,8 +211,7 @@ diff_prep_term(Term) ->
     re:split(Flat, TermSplit, [trim]).
 
 format_term(Term, Indent, Outer) ->
-    {ok, Cols} = io:columns(),
-    io_lib_pretty:print(Term, Indent, Cols - Outer, -1).
+    io_lib_pretty:print(Term, Indent, columns() - Outer, -1).
 
 format_diff([]) ->
     [];
@@ -253,8 +252,7 @@ format_exception(Error, Reason, Stacktrace) ->
     lib:format_exception(1, Error, Reason, Stacktrace,
         fun(_M, _F, _A) -> false end,
         fun(T, I) ->
-            {ok, Cols} = io:columns(),
-            io_lib_pretty:print(T, I, Cols, -1)
+            io_lib_pretty:print(T, I, columns(), -1)
         end
     ).
 
@@ -382,3 +380,5 @@ multiline([]) ->
 
 get(Key, Proplist)          -> proplists:get_value(Key, Proplist).
 get(Key, Proplist, Default) -> proplists:get_value(Key, Proplist, Default).
+
+columns() -> case io:columns() of {ok, Columns} -> Columns; _Error -> 80 end.
