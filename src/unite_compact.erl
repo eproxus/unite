@@ -67,7 +67,15 @@ handle_cancel(_Type, _Data, State) ->
 terminate({ok, Result}, #s{cases = Cases} = State) ->
     print_failures(lists:filter(
         fun(C) ->
-            case get(status, C) of {error, _} -> true; _ -> false end
+            case get(status, C) of
+                {error, _} ->
+                    true;
+                _  ->
+                    case get(reason, C) of
+                        {abort, _} -> true;
+                        _          -> false
+                    end
+            end
         end,
         Cases
     )),
@@ -175,18 +183,6 @@ format_info(Failure, {error, {E, R, ST}}) ->
             color:red(format_exception(E, R, ST))
         ]
     };
-format_info(Failure, {abort, {Reason, {E, R, ST}}}) ->
-    {
-        color:yellow(format_case(Failure, ST)),
-        [
-            color:yellowb(case Reason of
-                setup_failed -> "Setup failed: ";
-                cleanup_failed -> "Cleanup failed: "
-            end),
-            io_lib:format("~n", []),
-            color:yellow(format_exception(E, R, ST))
-        ]
-    };
 format_info(_Failure, {abort, {bad_test, Test}}) ->
     {
         color:yellow("Bad test specification:"),
@@ -199,6 +195,18 @@ format_info(Failure, {abort, {generator_failed, {MFA, {E, R, ST}}}}) ->
         color:yellow(format_case(Failure, [add_info(MFA, ST)])),
         [
             color:yellowb("Generator failed!"),
+            io_lib:format("~n", []),
+            color:yellow(format_exception(E, R, ST))
+        ]
+    };
+format_info(Failure, {abort, {Reason, {E, R, ST}}}) ->
+    {
+        color:yellow(format_case(Failure, ST)),
+        [
+            color:yellowb(case Reason of
+                setup_failed -> "Setup failed: ";
+                cleanup_failed -> "Cleanup failed: "
+            end),
             io_lib:format("~n", []),
             color:yellow(format_exception(E, R, ST))
         ]
