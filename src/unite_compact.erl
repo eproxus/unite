@@ -168,7 +168,7 @@ format_info(Failure, {error, {error, {assertException_failed, Info}, ST}}) ->
     end;
 format_info(Failure, {error, {E, R, ST}}) ->
     {
-        color:red(format_case(Failure, ST)),
+        format_case(Failure, ST, red),
         [
             color:redb("Uncaught exception! "),
             io_lib:format("~n", []),
@@ -222,13 +222,16 @@ format_diff([{del, Str}|Rest]) ->
 format_diff([{ins, Str}|Rest]) ->
     [color:yellow(["+", Str, "+"])|format_diff(Rest)].
 
-format_case(Failure, ST) ->
+
+format_case(Failure, ST) -> format_case(Failure, ST, white).
+
+format_case(Failure, ST, Color) ->
     case get(desc, Failure) of
         undefined -> format_source(Failure, ST);
         Desc ->
             io_lib:format("~s~n~s", [
-                Desc,
-                ioindent(4, format_source(Failure, ST))
+                colorize([$", Desc, $"], cyan),
+                colorize(ioindent(4, format_source(Failure, ST)), Color)
             ])
     end.
 
@@ -296,7 +299,7 @@ print_times(_State) ->
 
 print_time(Ms, Case) ->
     Time = colorize(string:left(format_time(Ms), 10), red),
-    io:format("    ~s ~s~n", [Time, Case]).
+    io:format("    ~s~n      ~s~n", [Case, Time]).
 
 % Summary
 
