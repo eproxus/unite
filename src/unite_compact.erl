@@ -279,13 +279,22 @@ format_output(Failure) ->
             ]
     end.
 
+fixup_record_accessors([{'#', _} = Bang, {atom, _, _} = Record, {dot, Line}, {atom, _, _} = Member | Rest]) ->
+    [Bang, Record, {'.', Line}, Member | fixup_record_accessors(Rest)];
+fixup_record_accessors([X | Rest]) ->
+    [X | fixup_record_accessors(Rest)];
+fixup_record_accessors([]) ->
+    [].
+
 format_macro_string(Str) ->
     case lists:member($?, Str) of
         true ->
             [C || C <- Str, C =/= $ ];
         false ->
             {ok, S, _} = erl_scan:string(Str ++ "."),
-            {ok, P} = erl_parse:parse_exprs(S),
+            %% Eunit expression contains record accessors as 'AA # record . field' which can't be parsed.
+            S2 = fixup_record_accessors(S),
+            {ok, P} = erl_parse:parse_exprs(S2),
             erl_pp:exprs(P)
     end.
 
