@@ -65,7 +65,7 @@ handle_cancel(_Type, _Data, State) ->
     State.
 
 terminate({ok, Result}, #s{cases = Cases} = State) ->
-    print_failures(lists:filter(
+    FailedCases = lists:filter(
         fun(C) ->
             case get(status, C) of
                 {error, _} ->
@@ -76,27 +76,30 @@ terminate({ok, Result}, #s{cases = Cases} = State) ->
                         _          -> false
                     end
             end
-        end,
-        Cases
-    )),
+        end, Cases),
+    RecordsInfo = extract_cases_record_info(FailedCases),
+    print_failures(FailedCases, RecordsInfo),
     print_times(State),
     print_summary(Result, State).
 
 %--- Internal Functions -------------------------------------------------------
 
-print_failures([]) -> ok;
-print_failures(Failures) ->
+print_failures([], _) -> ok;
+print_failures(Failures, RecordsInfo) ->
     Indexed = lists:zip(lists:seq(1, length(Failures)), Failures),
-    [print_failure(I, F) || {I, F} <- Indexed],
+    [print_failure(I, F, RecordsInfo) || {I, F} <- Indexed],
     io:format("~n").
 
 % Individual Test Case
 
-print_failure(Index, Failure) ->
+print_failure(Index, Failure, RecordsInfo) ->
     Reason = get(reason, Failure),
     Info = get(status, Failure, Reason),
 
-    {Header, Details} = format_info(Failure, Info),
+    {error, {_, _, [{CurrentModule, _, _, _} | _]}} = Info,
+    Records = get(CurrentModule, RecordsInfo),
+
+    {Header, Details} = format_info(Failure, Info, Records),
     io:format("~n~n ~p) ~s~n", [Index, Header]),
     io:format(ioindent(4, Details)),
     case format_output(Failure) of
@@ -104,17 +107,17 @@ print_failure(Index, Failure) ->
         Output    -> io:format("~n~s", [ioindent(4, Output)])
     end.
 
-format_info(Failure, {error, {error, {assertion_failed, Info}, ST}}) ->
+format_info(Failure, {error, {error, {assertion_failed, Info}, ST}}, _Records) ->
     Expr = get(expression, Info),
     {
         color:red(format_case(Failure, ST)),
         [color:redb("Assert failed: "), format_macro_string(Expr)]
     };
-format_info(Failure, {error, {error, {assertEqual_failed, Info}, ST}}) ->
+format_info(Failure, {error, {error, {assertEqual_failed, Info}, ST}}, Records) ->
     Expected = get(expected, Info),
     Actual = get(value, Info),
-    Exp = diff_prep_term(Expected),
-    Act = diff_prep_term(Actual),
+    Exp = diff_prep_term(Expected, Records),
+    Act = diff_prep_term(Actual, Records),
     Diff = tdiff:diff(Exp, Act),
     {
         color:red(format_case(Failure, ST)),
@@ -128,7 +131,7 @@ format_info(Failure, {error, {error, {assertEqual_failed, Info}, ST}}) ->
             format_diff(Diff)
         ])
     };
-format_info(Failure, {error, {error, {assertMatch_failed, Info}, ST}}) ->
+format_info(Failure, {error, {error, {assertMatch_failed, Info}, ST}}, Records) ->
     Expr = get(expression, Info),
     Pattern = get(pattern, Info),
     Value = get(value, Info),
@@ -141,21 +144,21 @@ format_info(Failure, {error, {error, {assertMatch_failed, Info}, ST}}) ->
             color:blueb("Pattern:"),
             ioindent(4, format_macro_string(Pattern)),
             color:yellowb("Actual:"),
-            ioindent(4, format_term(Value, 0, 8))
+            ioindent(4, format_term(Value, 0, 8, Records))
         ])
     };
-format_info(Failure, {error, {error, {assertException_failed, Info}, ST}}) ->
+format_info(Failure, {error, {error, {assertException_failed, Info}, ST}}, Records) ->
     case get(unexpected_exception, Info) of
         undefined ->
             Success = get(unexpected_success, Info),
-            Term = format_term(Success, 22, 4),
+            Term = format_term(Success, 22, 4, Records),
             {
                 color:red(format_case(Failure, ST)),
                 case multiline(Term) of
                     true ->
                         io_lib:format("~s~n~s", [
                             color:redb("Unexpected success!"),
-                            color:red(format_term(Success, 0, 4))
+                            color:red(format_term(Success, 0, 4, Records))
                         ]);
                     false ->
                         [
@@ -170,36 +173,36 @@ format_info(Failure, {error, {error, {assertException_failed, Info}, ST}}) ->
                 color:red(format_case(Failure, ST)),
                 io_lib:format("~s~n~s", [
                     color:redb("Unexpected exception:"),
-                    color:red(format_exception(E, R, NewST))
+                    color:red(format_exception(E, R, NewST, Records))
                 ])
             }
     end;
-format_info(Failure, {error, {E, R, ST}}) ->
+format_info(Failure, {error, {E, R, ST}}, Records) ->
     {
         format_case(Failure, ST, red),
         [
             color:redb("Uncaught exception! "),
             io_lib:format("~n", []),
-            color:red(format_exception(E, R, ST))
+            color:red(format_exception(E, R, ST, Records))
         ]
     };
-format_info(_Failure, {abort, {bad_test, Test}}) ->
+format_info(_Failure, {abort, {bad_test, Test}}, _Records) ->
     {
         color:yellow("Bad test specification:"),
         [
             color:yellow(io_lib:format("~p", [Test]))
         ]
     };
-format_info(Failure, {abort, {generator_failed, {MFA, {E, R, ST}}}}) ->
+format_info(Failure, {abort, {generator_failed, {MFA, {E, R, ST}}}}, Records) ->
     {
         color:yellow(format_case(Failure, [add_info(MFA, ST)])),
         [
             color:yellowb("Generator failed!"),
             io_lib:format("~n", []),
-            color:yellow(format_exception(E, R, ST))
+            color:yellow(format_exception(E, R, ST, Records))
         ]
     };
-format_info(Failure, {abort, {Reason, {E, R, ST}}}) ->
+format_info(Failure, {abort, {Reason, {E, R, ST}}}, Records) ->
     {
         color:yellow(format_case(Failure, ST)),
         [
@@ -208,18 +211,18 @@ format_info(Failure, {abort, {Reason, {E, R, ST}}}) ->
                 cleanup_failed -> "Cleanup failed: "
             end),
             io_lib:format("~n", []),
-            color:yellow(format_exception(E, R, ST))
+            color:yellow(format_exception(E, R, ST, Records))
         ]
     }.
 
-diff_prep_term(Term) ->
-    Pretty = format_term(Term, 0, 0),
+diff_prep_term(Term, Records) ->
+    Pretty = format_term(Term, 0, 0, Records),
     Flat = iolist_to_binary(Pretty),
     TermSplit = "([,\\[\\]\\{\\}]|\\s+=>\\s+)",
     re:split(Flat, TermSplit, [trim]).
 
-format_term(Term, Indent, Outer) ->
-    io_lib_pretty:print(Term, Indent, columns() - Outer, -1).
+format_term(Term, Indent, Outer, Records) ->
+    io_lib_pretty:print(Term, Indent, columns() - Outer, -1, make_record_print_fun(Records)).
 
 format_diff([]) ->
     [];
@@ -259,11 +262,11 @@ format_stack_line({M, F, A, I}) ->
             io_lib:format("~p/~p (~s:~p)", [F, A, File, L])
     end.
 
-format_exception(Error, Reason, Stacktrace) ->
+format_exception(Error, Reason, Stacktrace, Records) ->
     lib:format_exception(1, Error, Reason, Stacktrace,
         fun(_M, _F, _A) -> false end,
         fun(T, I) ->
-            io_lib_pretty:print(T, I, columns(), -1)
+            io_lib_pretty:print(T, I, columns(), -1, make_record_print_fun(Records))
         end
     ).
 
@@ -400,3 +403,133 @@ get(Key, Proplist)          -> proplists:get_value(Key, Proplist).
 get(Key, Proplist, Default) -> proplists:get_value(Key, Proplist, Default).
 
 columns() -> case io:columns() of {ok, Columns} -> Columns; _Error -> 80 end.
+
+%% This is mostly code from the erlang shell to properly print records
+
+extract_cases_record_info(Cases) ->
+    extract_cases_record_info(Cases, []).
+
+extract_cases_record_info([Case | Rest], Accum) ->
+    {status, Status} = lists:keyfind(status, 1, Case),
+    case Status of
+        {error, {_, _, [{Module, _, _, _} | _]}} ->
+            case get(Module, Accum) of
+                undefined ->
+                    case find_module(Module) of
+                        {error, nofile} ->
+                            extract_cases_record_info(Rest, [{Module, []} | Accum]);
+                        File ->
+                            extract_cases_record_info(Rest, [{Module, read_records(File)} | Accum])
+                    end;
+                _ ->
+                    extract_cases_record_info(Rest, Accum)
+            end;
+        _ ->
+            extract_cases_record_info(Rest, Accum)
+    end;
+extract_cases_record_info([], Accum) ->
+    Accum.
+
+find_module(Mod) ->
+    case code:which(Mod) of
+        File when is_list(File) ->
+            File;
+        preloaded ->
+            {_M,_Bin,File} = code:get_object_code(Mod),
+            File;
+        _Else ->
+            {error,nofile}
+    end.
+
+record_attrs(Forms) ->
+    [{Name, A} || A = {attribute,_,record,{Name,_}} <- Forms].
+
+read_records(File) ->
+    case filename:extension(File) of
+        ".beam" ->
+            case beam_lib:chunks(File, [abstract_code,"CInf"]) of
+                {ok,{_Mod,[{abstract_code,{Version,Forms}},{"CInf", CB}]}} ->
+                    case record_attrs(Forms) of
+                        [] when Version =:= raw_abstract_v1 ->
+                            [];
+                        [] ->
+                            try_source(File, CB);
+                        Records ->
+                            Records
+                    end;
+                {ok,{_Mod,[{abstract_code,no_abstract_code},{"CInf", CB}]}} ->
+                    try_source(File, CB);
+                _Error ->
+                    []
+            end;
+        _ ->
+            []
+    end.
+
+make_record_print_fun(Records) ->
+    fun (Tag, NoFields) ->
+        case Records of
+            undefined -> no;
+            _ ->
+                case lists:keyfind(Tag, 1, Records) of
+                    {_,{attribute,_,record,{Tag, Fields}}} when length(Fields) =:= NoFields ->
+                        record_fields(Fields);
+                    _ -> no
+                end
+        end
+    end.
+
+record_fields([{record_field,_,{atom,_,Field}} | Fs]) ->
+    [Field | record_fields(Fs)];
+record_fields([{record_field,_,{atom,_,Field},_} | Fs]) ->
+    [Field | record_fields(Fs)];
+record_fields([]) ->
+    [].
+
+try_source(Beam, CB) ->
+    Os = case lists:keyfind(options, 1, binary_to_term(CB)) of
+             false -> [];
+             {_, Os0} -> Os0
+         end,
+    Src0 = filename:rootname(Beam) ++ ".erl",
+    case is_file(Src0) of
+        true -> parse_file(Src0, Os);
+        false ->
+            EbinDir = filename:dirname(Beam),
+            Src = filename:join([filename:dirname(EbinDir), "src",
+                                 filename:basename(Src0)]),
+            case is_file(Src) of
+                true -> parse_file(Src, Os);
+                false -> {error, nofile}
+            end
+    end.
+
+is_file(Name) ->
+    case filelib:is_file(Name) of
+        true ->
+            not filelib:is_dir(Name);
+        false ->
+            false
+    end.
+
+inc_paths(Opts) ->
+    [P || {i,P} <- Opts, is_list(P)].
+
+pre_defs([{d,M,V}|Opts]) ->
+    [{M,V}|pre_defs(Opts)];
+pre_defs([{d,M}|Opts]) ->
+    [M|pre_defs(Opts)];
+pre_defs([_|Opts]) ->
+    pre_defs(Opts);
+pre_defs([]) -> [].
+
+parse_file(File, Opts) ->
+    Cwd = ".",
+    Dir = filename:dirname(File),
+    IncludePath = [Cwd,Dir|inc_paths(Opts)],
+    case epp:parse_file(File, IncludePath, pre_defs(Opts)) of
+        {ok,Forms} ->
+            record_attrs(Forms);
+        Error ->
+            Error
+    end.
