@@ -246,18 +246,21 @@ format_case(Failure, ST, Color) ->
 format_source(Failure, ST) ->
     case get(source, Failure) of
         undefined ->
-            format_stack_line(hd(ST));
+            format_stack_line(ST);
         MFA ->
-            format_stack_line(add_info(MFA, ST))
+            format_stack_line([add_info(MFA, ST)])
     end.
 
-format_stack_line({M, F, A, I}) ->
+format_stack_line([{M, F, A, I} | _]) ->
     case {get(file, I), get(line, I)} of
         {undefined, undefined} ->
             io_lib:format("~p:~p/~p", [M, F, A]);
         {File, L} ->
             io_lib:format("~p/~p (~s:~p)", [F, A, File, L])
-    end.
+    end;
+
+format_stack_line([]) ->
+    "unknown location".
 
 format_exception(Error, Reason, Stacktrace) ->
     lib:format_exception(1, Error, Reason, Stacktrace,
@@ -292,7 +295,7 @@ format_macro_string(Str) ->
 % Profiling
 
 print_times(#s{profile_max = Max, cases = Cases, profile = P}) when P ->
-    Times = [{get(time, C), format_case(C, [])} || C <- Cases],
+    Times = [{T, format_case(C, [])} || C <- Cases, T <- [get(time, C)], is_integer(T)],
     Top = lists:sublist(lists:reverse(lists:sort(Times)), Max),
     case length(Top) of
         0 ->
