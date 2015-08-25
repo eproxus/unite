@@ -16,7 +16,7 @@
 % Clear line: "\e[2K"
 
 -record(s, {
-    start = erlang:monotic_time(),
+    start = erlang:monotonic_time(),
     cases = [],
     profile = false,
     profile_max = 10
@@ -319,7 +319,7 @@ print_summary(Result, State) ->
         [0, 0, 0, 0] ->
             ok;
         [Pass, Fail, Skip, Cancel] ->
-            Elapsed = erlang:monotic_time() - State#s.start,
+            Elapsed = erlang:monotonic_time() - State#s.start,
             Ms = erlang:convert_time_unit(Elapsed, native, milli_seconds),
             Time = format_time(Ms),
             io:format("~n~s~n", [iolist_to_binary(iojoin([
