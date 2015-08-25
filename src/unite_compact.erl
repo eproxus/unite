@@ -104,13 +104,13 @@ print_failure(Index, Failure) ->
         Output    -> io:format("~n~s", [ioindent(4, Output)])
     end.
 
-format_info(Failure, {error, {error, {assertion_failed, Info}, ST}}) ->
+format_info(Failure, {error, {error, {assert, Info}, ST}}) ->
     Expr = get(expression, Info),
     {
         color:red(format_case(Failure, ST)),
         [color:redb("Assert failed: "), format_macro_string(Expr)]
     };
-format_info(Failure, {error, {error, {assertEqual_failed, Info}, ST}}) ->
+format_info(Failure, {error, {error, {assertEqual, Info}, ST}}) ->
     Expected = get(expected, Info),
     Actual = get(value, Info),
     Exp = diff_prep_term(Expected),
@@ -128,7 +128,7 @@ format_info(Failure, {error, {error, {assertEqual_failed, Info}, ST}}) ->
             format_diff(Diff)
         ])
     };
-format_info(Failure, {error, {error, {assertMatch_failed, Info}, ST}}) ->
+format_info(Failure, {error, {error, {assertMatch, Info}, ST}}) ->
     Expr = get(expression, Info),
     Pattern = get(pattern, Info),
     Value = get(value, Info),
@@ -144,7 +144,7 @@ format_info(Failure, {error, {error, {assertMatch_failed, Info}, ST}}) ->
             ioindent(4, format_term(Value, 0, 8))
         ])
     };
-format_info(Failure, {error, {error, {assertException_failed, Info}, ST}}) ->
+format_info(Failure, {error, {error, {assertException, Info}, ST}}) ->
     case get(unexpected_exception, Info) of
         undefined ->
             Success = get(unexpected_success, Info),
