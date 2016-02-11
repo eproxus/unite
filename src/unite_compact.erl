@@ -13,10 +13,24 @@
 
 -export([ioindent/2]).
 
+%% Erlang 18.x introduced Time and Time Correction and new bifs
+-ifdef(monotonic_time).
+-define(NOW,     erlang:monotic_time()).
+-define(ELAPSED, fun(Start) ->
+                         erlang:convert_time_unit(
+                           erlang:monotic_time() - Start, native, milli_seconds)
+                 end).
+-else.
+-define(NOW,     erlang:now()).
+-define(ELAPSED, fun(Start) ->
+                         timer:now_diff(now(), Start) / 1000
+                 end).
+-endif.
+
 % Clear line: "\e[2K"
 
 -record(s, {
-    start = erlang:monotonic_time(),
+    start = ?NOW,
     cases = [],
     profile = false,
     profile_max = 10
@@ -319,9 +333,7 @@ print_summary(Result, State) ->
         [0, 0, 0, 0] ->
             ok;
         [Pass, Fail, Skip, Cancel] ->
-            Elapsed = erlang:monotonic_time() - State#s.start,
-            Ms = erlang:convert_time_unit(Elapsed, native, milli_seconds),
-            Time = format_time(Ms),
+            Time = format_time(?ELAPSED(State#s.start)),
             io:format("~n~s~n", [iolist_to_binary(iojoin([
                 non_zero(Pass, green, plural(Pass, "test", "passed")),
                 non_zero(Fail, red, plural(Fail, "test", "failed")),
