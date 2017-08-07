@@ -1,6 +1,6 @@
 [![Travis][travis badge]][travis]
 [![Erlang Versions][erlang version badge]][travis]
-[![Build Tool][build tool]][hex]
+[![Build Tool][build tool]]()
 
 Unite
 =====
