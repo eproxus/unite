@@ -1,3 +1,7 @@
+[![Travis][travis badge]][travis]
+[![Erlang Versions][erlang version badge]][travis]
+[![Build Tool][build tool]][hex]
+
 Unite
 =====
 
@@ -31,3 +35,10 @@ To get timings of long running tests, add `profile` to the option list:
 ```
 
 This will show the top 10 slowest tests (or the top N slowest tests if `{profile, N}` is used).
+
+
+<!-- Badges -->
+[travis]: https://travis-ci.org/eproxus/unite
+[travis badge]: https://img.shields.io/travis/eproxus/unite/master.svg?style=flat-square
+[erlang version badge]: https://img.shields.io/badge/erlang-R15B03%20to%2020.0-blue.svg?style=flat-square
+[build tool]: https://img.shields.io/badge/build%20tool-rebar3-orange.svg?style=flat-square
