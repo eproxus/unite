@@ -20,7 +20,7 @@ Add Unite as a dependency in your top level `rebar.config` and enable the Unite 
 
 Using `no_tty` is important, because it disables the standard EUnit output.
 
-Then just run Rebar as usual: `rebar eunit`.
+Then just run Rebar 3 as usual: `rebar3 eunit`.
 
 ### Profiling
 
@@ -31,4 +31,3 @@ To get timings of long running tests, add `profile` to the option list:
 ```
 
 This will show the top 10 slowest tests (or the top N slowest tests if `{profile, N}` is used).
-

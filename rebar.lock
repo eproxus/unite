@@ -1,0 +1,10 @@
+{"1.1.0",
+[{<<"color">>,{pkg,<<"erlang_color">>,<<"1.0.0">>},0},
+ {<<"tdiff">>,
+  {git,"git://github.com/tomas-abrahamsson/tdiff.git",
+       {ref,"bbb54ce20df388f2c7d01e8df30ef471ca98d0fb"}},
+  0}]}.
+[
+{pkg_hash,[
+ {<<"color">>, <<"145FE1D2E65C4516E4F03FEFCA6C2F47EBAD5899D978D70382A5CFE643E4AC9E">>}]}
+].
