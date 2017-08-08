@@ -274,6 +274,7 @@ format_exception(Error, Reason, Stacktrace) ->
 format_output(Failure) ->
     case get(output, Failure) of
         <<>> -> undefined;
+        [<<>>] -> undefined;
         undefined -> undefined;
         Output ->
             [
