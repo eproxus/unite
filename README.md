@@ -2,15 +2,14 @@
 [![Erlang Versions][erlang version badge]][travis]
 [![Build Tool][build tool]]()
 
-Unite
-=====
+# Unite
 
 Pretty EUnit test formatters
 
-![Example Output](https://raw.github.com/eproxus/unite/master/screenshot.png)
+<img src="https://raw.github.com/eproxus/unite/master/screenshot.png"
+ width="490" alt="Example output" />
 
-Installation & Usage
---------------------
+## Installation & Usage
 
 Add Unite as a dependency in your top level `rebar.config` and enable the Unite formatter:
 
