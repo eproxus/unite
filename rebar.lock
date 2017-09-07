@@ -1,8 +1,8 @@
 {"1.1.0",
 [{<<"color">>,{pkg,<<"erlang_color">>,<<"1.0.0">>},0},
- {<<"tdiff">>,{pkg,<<"tdiff">>,<<"0.1.1">>},0}]}.
+ {<<"tdiff">>,{pkg,<<"tdiff">>,<<"0.1.2">>},0}]}.
 [
 {pkg_hash,[
  {<<"color">>, <<"145FE1D2E65C4516E4F03FEFCA6C2F47EBAD5899D978D70382A5CFE643E4AC9E">>},
- {<<"tdiff">>, <<"D6B622CF01290B6390DD9EFC41E31BD94B67AF6D851FF93308BF68DD1D18A4BE">>}]}
+ {<<"tdiff">>, <<"4E1B30321F1B3D600DF65CD60858EDE1235FE4E5EE042110AB5AD90CD6464AC5">>}]}
 ].

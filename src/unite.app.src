@@ -1,5 +1,5 @@
 {application, unite, [
-  {description, "Pretty EUnit test formatters"},
-  {vsn, "0.1"},
-  {applications, [kernel, stdlib, color]}
+    {description, "Pretty EUnit test formatters"},
+    {vsn, "0.1"},
+    {applications, [kernel, stdlib, color, tdiff]}
 ]}.
