@@ -10,9 +10,13 @@ empty_test() -> ok.
 
 -ifdef(DEMO).
 
-assert_fail_test() -> ?assert(false).
+assert_fail_test() ->
+    io:format("THIS IS ONLY SHOWN IN FAILURES~n"),
+    ?assert(false).
 
-assert_test() -> ?assert(true).
+assert_test() ->
+    io:format("SHOULD NOT BE VISIBLE~n"),
+    ?assert(true).
 
 assert_equal_test() ->
     ?assertEqual(
