@@ -7,6 +7,7 @@
     {maintainers, ["Adam Lindberg"]},
     {licenses, ["MIT"]},
     {links, [
-        {"GitHub", "https://github.com/eproxus/unite"}
+        {"GitHub", "https://github.com/eproxus/unite"},
+        {"Changelog", "https://github.com/eproxus/unite/blob/master/CHANGELOG.md"}
     ]}
 ]}.
