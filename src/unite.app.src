@@ -1,5 +1,12 @@
 {application, unite, [
     {description, "Pretty EUnit test formatters"},
     {vsn, "0.1"},
-    {applications, [kernel, stdlib, color, tdiff]}
+    {applications, [kernel, stdlib, color, tdiff]},
+
+    % Hex.pm
+    {maintainers, ["Adam Lindberg"]},
+    {licenses, ["MIT"]},
+    {links, [
+        {"GitHub", "https://github.com/eproxus/unite"}
+    ]}
 ]}.
