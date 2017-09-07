@@ -1,6 +1,6 @@
 {application, unite, [
     {description, "Pretty EUnit test formatters"},
-    {vsn, "0.1"},
+    {vsn, "0.2"},
     {applications, [kernel, stdlib, color, tdiff]},
 
     % Hex.pm
