@@ -45,12 +45,13 @@ handle_begin(_Type, _Data, State) ->
 
 handle_end(test, Data, State) ->
     case get(status, Data) of
-        ok         -> io:format(color:green("."));
-        skip       -> io:format(color:yellow("S"));
-        {error, _} -> io:format(color:redb("F"))
+        ok            -> io:format(color:green("."));
+        skip          -> io:format(color:yellow("S"));
+        {skipped, _ } -> io:format(color:yellow("S"));
+        {error, _}    -> io:format(color:redb("F"))
     end,
     State#s{cases = State#s.cases ++ [Data]};
-handle_end(_Type, _Data, State) ->
+handle_end(group, _Data, State) ->
     State.
 
 handle_cancel(group, Data, State) ->
@@ -60,9 +61,7 @@ handle_cancel(group, Data, State) ->
         _Else ->
             io:format(color:yellow("C")),
             State#s{cases = State#s.cases ++ [Data]}
-    end;
-handle_cancel(_Type, _Data, State) ->
-    State.
+    end.
 
 terminate({ok, Result}, #s{cases = Cases} = State) ->
     print_failures(lists:filter(
@@ -70,7 +69,9 @@ terminate({ok, Result}, #s{cases = Cases} = State) ->
             case get(status, C) of
                 {error, _} ->
                     true;
-                _  ->
+                {skipped, _} ->
+                    true;
+                _Status  ->
                     case get(reason, C) of
                         {abort, _} -> true;
                         _          -> false
@@ -187,6 +188,7 @@ format_info(_Failure, {abort, {bad_test, Test}}) ->
     {
         color:yellow("Bad test specification:"),
         [
+            color:yellowb("Invalid specification: "),
             color:yellow(io_lib:format("~p", [Test]))
         ]
     };
@@ -211,12 +213,28 @@ format_info(Failure, {abort, {Reason, {E, R, ST}}}) ->
             io_lib:format("~n", []),
             color:yellow(format_exception(E, R, ST))
         ]
+    };
+format_info(_Failure, {skipped, Reason}) ->
+    {
+        color:yellow("Bad test specification:"),
+        [
+            color:yellowb("Specification exception: "),
+            color:yellow(io_lib:format("~p", [Reason]))
+        ]
+    };
+format_info(_Failure, {abort, {module_not_found, Module}}) ->
+    {
+        color:yellow("Bad test specification:"),
+        [
+            color:yellowb("Specification exception: "),
+            color:yellow(io_lib:format("~p", [{module_not_found, Module}]))
+        ]
     }.
 
 diff_prep_term(Term) ->
     Pretty = format_term(Term, 0, 0),
     Flat = iolist_to_binary(Pretty),
-    TermSplit = "([,\\[\\]\\{\\}]|\\s+=>\\s+)",
+    TermSplit = "([,\\[\\]\\{\\}]|\\s+=>\\s+|#\\{)",
     re:split(Flat, TermSplit, [trim]).
 
 format_term(Term, Indent, Outer) ->
