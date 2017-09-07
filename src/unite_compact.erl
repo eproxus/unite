@@ -275,14 +275,13 @@ format_stack_line([{M, F, A, I} | _]) ->
         {undefined, undefined} ->
             io_lib:format("~p:~p/~p", [M, F, A]);
         {File, L} ->
-            io_lib:format("~p/~p (~s:~p)", [F, A, File, L])
+            io_lib:format("~p/~p (~s:~p)", [F, A, relative_file(File), L])
     end;
-
 format_stack_line([]) ->
     "unknown location".
 
 format_exception(Error, Reason, Stacktrace) ->
-    lib:format_exception(1, Error, Reason, Stacktrace,
+    lib:format_exception(1, Error, Reason, relative_stacktrace(Stacktrace),
         fun(_M, _F, _A) -> false end,
         fun(T, I) ->
             io_lib_pretty:print(T, I, columns(), -1)
@@ -415,3 +414,23 @@ get(Key, Proplist)          -> proplists:get_value(Key, Proplist).
 get(Key, Proplist, Default) -> proplists:get_value(Key, Proplist, Default).
 
 columns() -> case io:columns() of {ok, Columns} -> Columns; _Error -> 80 end.
+
+relative_stacktrace([{M, F, A, Opts}|Stacktrace]) ->
+    [{M, F, A, relative_stack_opts(Opts)}|relative_stacktrace(Stacktrace)];
+relative_stacktrace([]) ->
+    [].
+
+relative_stack_opts([{file, File}|Opts]) -> [{file, relative_file(File)}|Opts];
+relative_stack_opts([Opt|Opts])          -> [Opt|Opts];
+relative_stack_opts([])                  -> [].
+
+relative_file(File) ->
+    {ok, CWD} = file:get_cwd(),
+    case {filename:split(CWD), filename:split(File)} of
+        {[Root|_] = A, [Root|_] = B} -> filename:join(relative_file(A, B));
+        {_, _}                       -> File
+    end.
+
+relative_file([P|A], [P|B]) -> relative_file(A, B);
+relative_file([_|A], B)     -> [".."|relative_file(A, B)];
+relative_file([], B)        -> B.
