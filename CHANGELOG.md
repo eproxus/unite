@@ -1,7 +1,11 @@
 # Change Log
 
-## [0.2](https://github.com/eproxus/unite/tree/0.2) (2017-09-07)
-[Full Changelog](https://github.com/eproxus/unite/compare/v0.0.1...0.2)
+## [0.2.0](https://github.com/eproxus/unite/tree/0.2.0) (2017-09-12)
+[Full Changelog](https://github.com/eproxus/unite/compare/v0.0.1...0.2.0)
+
+**Implemented enhancements:**
+
+- Show relative paths in stack traces [\#11](https://github.com/eproxus/unite/issues/11)
 
 **Merged pull requests:**
 
