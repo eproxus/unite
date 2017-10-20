@@ -16,7 +16,7 @@
 % Clear line: "\e[2K"
 
 -record(s, {
-    start = erlang:monotonic_time(),
+    start = current_time(),
     cases = [],
     profile = false,
     profile_max = 10
@@ -338,8 +338,7 @@ print_summary(Result, State) ->
         [0, 0, 0, 0] ->
             ok;
         [Pass, Fail, Skip, Cancel] ->
-            Elapsed = erlang:monotonic_time() - State#s.start,
-            Ms = erlang:convert_time_unit(Elapsed, native, milli_seconds),
+            Ms = elapsed_milli_seconds(State#s.start),
             Time = format_time(Ms),
             io:format("~n~s~n", [iolist_to_binary(iojoin([
                 non_zero(Pass, green, plural(Pass, "test", "passed")),
@@ -434,3 +433,16 @@ relative_file(File) ->
 relative_file([P|A], [P|B]) -> relative_file(A, B);
 relative_file([_|A], B)     -> [".."|relative_file(A, B)];
 relative_file([], B)        -> B.
+
+-ifdef(MONOTONIC_TIME).
+current_time() -> erlang:monotonic_time().
+
+elapsed_milli_seconds(Start) ->
+    Elapsed = current_time() - Start,
+    erlang:convert_time_unit(Elapsed, native, milli_seconds).
+-else.
+current_time() -> now().
+
+elapsed_milli_seconds(Start) ->
+    timer:now_diff(current_time(), Start) / 1000.
+-endif.
