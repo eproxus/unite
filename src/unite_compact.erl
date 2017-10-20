@@ -336,7 +336,7 @@ print_time(Ms, Case) ->
 print_summary(Result, State) ->
     case get_all(Result, [pass, fail, skip, cancel]) of
         [0, 0, 0, 0] ->
-            ok;
+            io:format("0 tests run~n");
         [Pass, Fail, Skip, Cancel] ->
             Ms = elapsed_milli_seconds(State#s.start),
             Time = format_time(Ms),
