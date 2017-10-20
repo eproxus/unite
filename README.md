@@ -13,14 +13,16 @@ Pretty EUnit test formatters
 
 ## Installation & Usage
 
-Add Unite as a dependency in your top level `rebar.config` and enable the Unite formatter:
+Add Unite as a dependency in your `rebar.config` and enable the Unite formatter:
 
 ```erlang
-{deps, [
-    {unite, "", {git, "git://github.com/eproxus/unite.git"}}
+{profiles, [
+    {test, [
+        {deps, [unite]},
+        {eunit_opts, [no_tty, {report, {unite_compact, []}}]}
+    ]}
 ]}.
 
-{eunit_opts, [no_tty, {report, {unite_compact, []}}]}.
 ```
 
 Using `no_tty` is important, because it disables the standard EUnit output.
