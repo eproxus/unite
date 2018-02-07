@@ -307,8 +307,10 @@ format_macro_string(Str) ->
             [C || C <- Str, C =/= $ ];
         false ->
             {ok, S, _} = erl_scan:string(Str ++ "."),
-            {ok, P} = erl_parse:parse_exprs(S),
-            erl_pp:exprs(P)
+            case erl_parse:parse_exprs(S) of
+              {ok, P} -> erl_pp:exprs(P);
+              _ -> Str
+            end
     end.
 
 % Profiling
