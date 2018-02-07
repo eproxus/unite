@@ -32,6 +32,12 @@ assert_equal_test() ->
         }
     ).
 
+assert_match_test() ->
+    ?assertMatch(
+       X when X < 1,
+       2
+    ).
+
 error_test() -> error(error_in_test).
 
 exit_test() -> exit(exit_in_test).
