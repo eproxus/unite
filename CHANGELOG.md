@@ -1,5 +1,8 @@
 # Change Log
 
+## [0.3.0](https://github.com/eproxus/unite/tree/0.3.0) (2017-10-20)
+[Full Changelog](https://github.com/eproxus/unite/compare/0.2.0...0.3.0)
+
 ## [0.2.0](https://github.com/eproxus/unite/tree/0.2.0) (2017-09-12)
 [Full Changelog](https://github.com/eproxus/unite/compare/v0.0.1...0.2.0)
 
