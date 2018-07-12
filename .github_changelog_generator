@@ -1,4 +1,4 @@
 user=eproxus
-project=meck
+project=unite
 unreleased=false
 exclude-labels=duplicate,invalid,wontfix,question,help wanted,decision needed,verification needed
