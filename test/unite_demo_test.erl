@@ -1,4 +1,8 @@
--module(unite_test).
+% NOTE: This is a demo test module, only for output purposes. Use like this:
+%
+%    $ rebar3 as demo eunit
+
+-module(unite_demo_test).
 
 -include_lib("eunit/include/eunit.hrl").
 
