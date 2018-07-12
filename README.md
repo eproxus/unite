@@ -3,6 +3,7 @@
 [![Hex.pm License][hex license badge]][hex]
 [![Erlang Versions][erlang version badge]][travis]
 [![Build Tool][build tool]][hex]
+[![Donations][liberapay badge]][liberapay]
 
 # Unite
 
@@ -40,6 +41,17 @@ To get timings of long running tests, add `profile` to the option list:
 This will show the top 10 slowest tests (or the top N slowest tests if
 `{profile, N}` is used).
 
+## Donations
+
+If you or your company use Unite and find it useful, [donations][liberapay] are greatly appreciated!
+
+<noscript>
+  <a href="https://liberapay.com/eproxus/donate">
+    <img alt="Donate using Liberapay"
+         src="https://liberapay.com/assets/widgets/donate.svg">
+  </a>
+</noscript>
+
 
 <!-- Badges -->
 [travis]: https://travis-ci.org/eproxus/unite
@@ -49,3 +61,5 @@ This will show the top 10 slowest tests (or the top N slowest tests if
 [hex license badge]: https://img.shields.io/hexpm/l/unite.svg?style=flat-square
 [erlang version badge]: https://img.shields.io/badge/erlang-R15%20to%2021.0-blue.svg?style=flat-square
 [build tool]: https://img.shields.io/badge/build%20tool-rebar3-orange.svg?style=flat-square
+[liberapay badge]: https://img.shields.io/liberapay/receives/eproxus.svg?logo=liberapay&style=flat-square
+[liberapay]: https://liberapay.com/eproxus/
