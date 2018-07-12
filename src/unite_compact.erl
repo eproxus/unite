@@ -22,7 +22,15 @@
     profile_max = 10
 }).
 
-%--- EUnit Callbacks ----------------------------------------------------------
+%--- Macros --------------------------------------------------------------------
+
+-ifdef(OTP_RELEASE).
+-define(ERROR_FORMATTER, erl_error).
+-else.
+-define(ERROR_FORMATTER, lib).
+-endif.
+
+%--- EUnit Callbacks -----------------------------------------------------------
 
 start() ->
     start([]).
@@ -45,10 +53,10 @@ handle_begin(_Type, _Data, State) ->
 
 handle_end(test, Data, State) ->
     case get(status, Data) of
-        ok            -> io:format(color:green("."));
-        skip          -> io:format(color:yellow("S"));
-        {skipped, _ } -> io:format(color:yellow("S"));
-        {error, _}    -> io:format(color:redb("F"))
+        ok            -> format(color:green("."));
+        skip          -> format(color:yellow("S"));
+        {skipped, _ } -> format(color:yellow("S"));
+        {error, _}    -> format(color:redb("F"))
     end,
     State#s{cases = State#s.cases ++ [Data]};
 handle_end(group, _Data, State) ->
@@ -62,7 +70,7 @@ handle_cancel(group, Data, State) ->
             State#s{cases = State#s.cases ++ [Data]}
     end;
 handle_cancel(test, Data, State) ->
-    io:format(color:yellow("C")),
+    format(color:yellow("C")),
     NewData = case get(status, Data) of
         undefined -> [{status, {cancelled, undefined}}|Data];
         _Else     -> Data
@@ -97,7 +105,7 @@ print_failures([]) -> ok;
 print_failures(Failures) ->
     Indexed = lists:zip(lists:seq(1, length(Failures)), Failures),
     [print_failure(I, F) || {I, F} <- Indexed],
-    io:format("~n").
+    format("~n").
 
 % Individual Test Case
 
@@ -106,11 +114,11 @@ print_failure(Index, Failure) ->
     Info = get(status, Failure, Reason),
 
     {Header, Details} = format_info(Failure, Info),
-    io:format("~n~n ~p) ~s~n", [Index, Header]),
-    io:format(ioindent(4, Details)),
+    format("~n~n ~p) ~s~n", [Index, Header]),
+    format(ioindent(4, Details)),
     case format_output(Failure) of
         undefined -> ok;
-        Output    -> io:format("~n~s", [ioindent(4, Output)])
+        Output    -> format("~n~s", [ioindent(4, Output)])
     end.
 
 format_info(Failure, {error, {error, {assert, Info}, ST}}) ->
@@ -296,7 +304,7 @@ format_stack_line([]) ->
     "unknown location".
 
 format_exception(Error, Reason, Stacktrace) ->
-    lib:format_exception(1, Error, Reason, relative_stacktrace(Stacktrace),
+    format_exception(1, Error, Reason, relative_stacktrace(Stacktrace),
         fun(_M, _F, _A) -> false end,
         fun(T, I) ->
             io_lib_pretty:print(T, I, columns(), -1)
@@ -338,7 +346,7 @@ print_times(#s{profile_max = Max, cases = Cases, profile = P}) when P ->
             ok;
         N ->
             Title = colorize(io_lib:format("Top ~p slowest tests:", [N]), yellow),
-            io:format("~n~n  ~s~n", [Title]),
+            format("~n~n  ~s~n", [Title]),
             [print_time(T, C) || {T, C} <- Top]
     end;
 print_times(_State) ->
@@ -346,18 +354,18 @@ print_times(_State) ->
 
 print_time(Ms, Case) ->
     Time = colorize(string:left(format_time(Ms), 10), red),
-    io:format("    ~s~n      ~s~n", [Case, Time]).
+    format("    ~s~n      ~s~n", [Case, Time]).
 
 % Summary
 
 print_summary(Result, State) ->
     case get_all(Result, [pass, fail, skip, cancel]) of
         [0, 0, 0, 0] ->
-            io:format("0 tests run~n");
+            format("0 tests run~n");
         [Pass, Fail, Skip, Cancel] ->
             Ms = elapsed_milli_seconds(State#s.start),
             Time = format_time(Ms),
-            io:format("~n~s~n", [iolist_to_binary(iojoin([
+            format("~n~s~n", [iolist_to_binary(iojoin([
                 non_zero(Pass, green, plural(Pass, "test", "passed")),
                 non_zero(Fail, red, plural(Fail, "test", "failed")),
                 non_zero(Skip, yellow, plural(Skip, "test", "skipped")),
@@ -463,3 +471,9 @@ current_time() -> now().
 elapsed_milli_seconds(Start) ->
     timer:now_diff(current_time(), Start) / 1000.
 -endif.
+
+format(Format)       -> format(Format, []).
+format(Format, Data) -> io:format(iolist_to_binary(Format), Data).
+
+format_exception(I, Class, Reason, StackTrace, StackFun, FormatFun) ->
+    ?ERROR_FORMATTER:format_exception(I, Class, Reason, StackTrace, StackFun, FormatFun).
