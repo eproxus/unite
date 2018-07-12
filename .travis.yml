@@ -13,6 +13,8 @@ otp_release:
 
 install:
   - wget https://s3.amazonaws.com/rebar3/rebar3 && chmod +x rebar3
+before_script:
+  - kerl list installations
 script:
   - "./rebar3 as demo eunit; echo \"\nExit code was: $?\""
 
