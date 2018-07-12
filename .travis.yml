@@ -5,11 +5,11 @@ os: linux
 otp_release:
   - 21.0.2
   - 20.3.8.2
-  - 19.3.6.9
-  - 18.3.4.9
-  - 17.5.6.9
+  - 19.3
+  - 18.3
+  - 17.5
   - R16B03-1
-  - R15B03-1
+  - R15B03
 
 install:
   - wget https://s3.amazonaws.com/rebar3/rebar3 && chmod +x rebar3
