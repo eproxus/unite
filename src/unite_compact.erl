@@ -59,9 +59,15 @@ handle_cancel(group, Data, State) ->
         undefined ->
             State;
         _Else ->
-            io:format(color:yellow("C")),
             State#s{cases = State#s.cases ++ [Data]}
-    end.
+    end;
+handle_cancel(test, Data, State) ->
+    io:format(color:yellow("C")),
+    NewData = case get(status, Data) of
+        undefined -> [{status, {cancelled, undefined}}|Data];
+        _Else     -> Data
+    end,
+    State#s{cases = State#s.cases ++ [NewData]}.
 
 terminate({ok, Result}, #s{cases = Cases} = State) ->
     print_failures(lists:filter(
@@ -70,6 +76,8 @@ terminate({ok, Result}, #s{cases = Cases} = State) ->
                 {error, _} ->
                     true;
                 {skipped, _} ->
+                    true;
+                {cancelled, _} ->
                     true;
                 _Status  ->
                     case get(reason, C) of
@@ -229,6 +237,13 @@ format_info(_Failure, {abort, {module_not_found, Module}}) ->
             color:yellowb("Specification exception: "),
             color:yellow(io_lib:format("~p", [{module_not_found, Module}]))
         ]
+    };
+format_info(Failure, {cancelled, undefined}) ->
+    {
+        color:yellow(format_case(Failure, [])),
+        [
+            color:yellowb("Unknown EUnit error!")
+        ]
     }.
 
 diff_prep_term(Term) ->
@@ -236,8 +251,8 @@ diff_prep_term(Term) ->
     Flat = iolist_to_binary(Pretty),
     TermSplit = "([,\\[\\]\\{\\}]|\\s+=>\\s+|#\\{)",
     re:split(Flat, TermSplit, [trim]).
-
 format_term(Term, Indent, Outer) ->
+
     io_lib_pretty:print(Term, Indent, columns() - Outer, -1).
 
 format_diff([]) ->
