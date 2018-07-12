@@ -47,5 +47,5 @@ This will show the top 10 slowest tests (or the top N slowest tests if
 [hex]: https://hex.pm/packages/meck
 [hex version badge]: https://img.shields.io/hexpm/v/unite.svg?style=flat-square
 [hex license badge]: https://img.shields.io/hexpm/l/unite.svg?style=flat-square
-[erlang version badge]: https://img.shields.io/badge/erlang-R15%20to%2020-blue.svg?style=flat-square
+[erlang version badge]: https://img.shields.io/badge/erlang-R15%20to%2021.0-blue.svg?style=flat-square
 [build tool]: https://img.shields.io/badge/build%20tool-rebar3-orange.svg?style=flat-square
