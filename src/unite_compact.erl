@@ -136,7 +136,7 @@ format_info(Failure, {error, {error, {assertEqual, Info}, ST}}) ->
     {
         color:red(format_case(Failure, ST)),
         io_lib:format("~s ~s~n~s", [
-            color:redb("Assert equal failed!"),
+            color:redb("Assert equal failed:"),
             [
                 color:blueb("-Expected-"),
                 " ",
@@ -152,7 +152,7 @@ format_info(Failure, {error, {error, {assertMatch, Info}, ST}}) ->
     {
         color:red(format_case(Failure, ST)),
         io_lib:format("~s~n~s~n~s~n~s~n~s~n~s~n~s~n", [
-            color:redb("Assert match failed!"),
+            color:redb("Assert match failed:"),
             color:magentab("Expression:"),
             ioindent(4, format_macro_string(Expr)),
             color:blueb("Pattern:"),
@@ -171,7 +171,7 @@ format_info(Failure, {error, {error, {assertException, Info}, ST}}) ->
                 case multiline(Term) of
                     true ->
                         io_lib:format("~s~n~s", [
-                            color:redb("Unexpected success!"),
+                            color:redb("Unexpected success:"),
                             color:red(format_term(Success, 0, 4))
                         ]);
                     false ->
@@ -195,7 +195,7 @@ format_info(Failure, {error, {E, R, ST}}) ->
     {
         color:red(format_case(Failure, ST, red)),
         [
-            color:redb("Uncaught exception! "),
+            color:redb("Uncaught exception:"),
             io_lib:format("~n", []),
             color:red(format_exception(E, R, ST))
         ]
@@ -212,7 +212,7 @@ format_info(Failure, {abort, {generator_failed, {MFA, {E, R, ST}}}}) ->
     {
         color:yellow(format_case(Failure, [add_info(MFA, ST)])),
         [
-            color:yellowb("Generator failed!"),
+            color:yellowb("Generator failed:"),
             io_lib:format("~n", []),
             color:yellow(format_exception(E, R, ST))
         ]

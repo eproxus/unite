@@ -11,7 +11,7 @@ The format is based on [Keep a Changelog], and this project adheres to
 
 ### Fixed
 
-- Color header formatting for uncaught exceptions
+- Fix header formatting inconsistencies
 
 ## [0.3.1] - 2018-07-12
 
