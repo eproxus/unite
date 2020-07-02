@@ -25,7 +25,7 @@ fi
 
 # Commit, tag and push
 git commit -m "Version $VSN"
-git tag -s "$VSN" -m "Version $VSN"
+git tag -s "v$VSN" -m "Version $VSN"
 git push && git push --tags
 
 # Clean and publish package and docs
@@ -33,10 +33,3 @@ rm -rf ebin
 rm -rf src/**/*.beam
 rm -rf test/**/*.beam
 rebar3 hex publish
-#rebar3 hex docs
-
-# Generate and push changelog
-github_changelog_generator
-git add CHANGELOG.md
-git commit -m "Update changelog for version $VSN"
-git push
