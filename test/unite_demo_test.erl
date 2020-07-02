@@ -42,6 +42,18 @@ assert_match_test() ->
        2
     ).
 
+assert_throw_test() ->
+    ?assertThrow(foo, throw(foo)),
+    ?assertThrow(foo, throw(bar)).
+
+assert_error_test() ->
+    ?assertError(foo, error(foo)),
+    ?assertError(foo, error(bar)).
+
+assert_exit_test() ->
+    ?assertExit(foo, exit(foo)),
+    ?assertExit(foo, exit(bar)).
+
 error_test() -> error(error_in_test).
 
 exit_test() -> exit(exit_in_test).
