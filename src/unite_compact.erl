@@ -363,7 +363,7 @@ print_summary(Result, State) ->
         [0, 0, 0, 0] ->
             format("0 tests run~n");
         [Pass, Fail, Skip, Cancel] ->
-            Ms = elapsed_milli_seconds(State#s.start),
+            Ms = elapsed_millisecond(State#s.start),
             Time = format_time(Ms),
             format("~n~s~n", [iolist_to_binary(iojoin([
                 non_zero(Pass, green, plural(Pass, "test", "passed")),
@@ -462,13 +462,13 @@ relative_file([], B)        -> B.
 -ifdef(MONOTONIC_TIME).
 current_time() -> erlang:monotonic_time().
 
-elapsed_milli_seconds(Start) ->
+elapsed_millisecond(Start) ->
     Elapsed = current_time() - Start,
-    erlang:convert_time_unit(Elapsed, native, milli_seconds).
+    erlang:convert_time_unit(Elapsed, native, millisecond).
 -else.
 current_time() -> now().
 
-elapsed_milli_seconds(Start) ->
+elapsed_millisecond(Start) ->
     timer:now_diff(current_time(), Start) / 1000.
 -endif.
 
