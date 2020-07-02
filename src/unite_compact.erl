@@ -193,7 +193,7 @@ format_info(Failure, {error, {error, {assertException, Info}, ST}}) ->
     end;
 format_info(Failure, {error, {E, R, ST}}) ->
     {
-        format_case(Failure, ST, red),
+        color:red(format_case(Failure, ST, red)),
         [
             color:redb("Uncaught exception! "),
             io_lib:format("~n", []),

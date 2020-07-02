@@ -7,6 +7,12 @@ The format is based on [Keep a Changelog], and this project adheres to
 
 # Change Log
 
+## [Unreleased]
+
+### Fixed
+
+- Color header formatting for uncaught exceptions
+
 ## [0.3.1] - 2018-07-12
 
 ### Added
