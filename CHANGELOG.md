@@ -9,6 +9,8 @@ The format is based on [Keep a Changelog], and this project adheres to
 
 ## [Unreleased]
 
+## [0.3.2] - 2022-02-22
+
 ### Changed
 
 - Drop support for Erlang R15, R16 and 17.0 (because of deprecated time APIs)
@@ -58,7 +60,8 @@ The format is based on [Keep a Changelog], and this project adheres to
 - Fix for older Erlang version [\#2](https://github.com/eproxus/unite/pull/2) ([JonGretar](https://github.com/JonGretar))
 
 
-[Unreleased]: https://github.com/eproxus/unite/compare/v0.3.1...HEAD
+[Unreleased]: https://github.com/eproxus/unite/compare/v0.3.2...HEAD
+[0.3.1]: https://github.com/eproxus/unite/compare/v0.3.1...v0.3.2
 [0.3.1]: https://github.com/eproxus/unite/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/eproxus/unite/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/eproxus/unite/compare/v0.0.1...v0.2.0
