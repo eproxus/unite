@@ -27,19 +27,19 @@ assert_equal_test() ->
             binary => <<"test string">>,
             map => #{a => 1, b => 2, c => value}
         },
-        #{
+        (fun() -> #{
             value => 2,
             list => [a, b, x, d, e],
             tuple => {foo, baz},
             binary => <<"test binary">>,
             map => #{foo => baz, bar => qux}
-        }
+        } end)()
     ).
 
 assert_match_test() ->
     ?assertMatch(
        X when X < 1,
-       2
+       (fun() -> 2 end)()
     ).
 
 assert_throw_test() ->
@@ -68,7 +68,7 @@ short_test() -> timer:sleep(50).
 io_format_test() ->
     % If a control code sneaks into the stack trace, we have to make sure we can
     % io:format it properly when Unite pretty prints:
-    io:format("~p", []).
+    apply(io, format, ["~p", []]).
 
 % EUnit has a bug where not all of the below cases are catched. To see each
 % individual case for sure, comment out the others:
