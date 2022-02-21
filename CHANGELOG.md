@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog], and this project adheres to
 ### Fixed
 
 - Fix header formatting inconsistencies
+- Stack traces containing io:format control sequences now print correctly
 
 ## [0.3.1] - 2018-07-12
 

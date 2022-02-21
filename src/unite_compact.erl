@@ -476,4 +476,9 @@ format(Format)       -> format(Format, []).
 format(Format, Data) -> io:format(iolist_to_binary(Format), Data).
 
 format_exception(I, Class, Reason, StackTrace, StackFun, FormatFun) ->
-    ?ERROR_FORMATTER:format_exception(I, Class, Reason, StackTrace, StackFun, FormatFun).
+    escape_exception(?ERROR_FORMATTER:format_exception(I, Class, Reason, StackTrace, StackFun, FormatFun)).
+
+escape_exception(String) ->
+    % If the stack trace contained a call to io:format with a control sequence,
+    % we need to escape it since we use io:format ourselves later on:
+    string:replace(String, "~", "~~").

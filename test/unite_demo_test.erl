@@ -64,6 +64,12 @@ long_test() -> timer:sleep(250).
 
 short_test() -> timer:sleep(50).
 
+
+io_format_test() ->
+    % If a control code sneaks into the stack trace, we have to make sure we can
+    % io:format it properly when Unite pretty prints:
+    io:format("~p", []).
+
 % EUnit has a bug where not all of the below cases are catched. To see each
 % individual case for sure, comment out the others:
 
