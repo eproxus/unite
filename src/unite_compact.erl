@@ -459,18 +459,11 @@ relative_file([P|A], [P|B]) -> relative_file(A, B);
 relative_file([_|A], B)     -> [".."|relative_file(A, B)];
 relative_file([], B)        -> B.
 
--ifdef(MONOTONIC_TIME).
 current_time() -> erlang:monotonic_time().
 
 elapsed_millisecond(Start) ->
     Elapsed = current_time() - Start,
     erlang:convert_time_unit(Elapsed, native, millisecond).
--else.
-current_time() -> now().
-
-elapsed_millisecond(Start) ->
-    timer:now_diff(current_time(), Start) / 1000.
--endif.
 
 format(Format)       -> format(Format, []).
 format(Format, Data) -> io:format(iolist_to_binary(Format), Data).

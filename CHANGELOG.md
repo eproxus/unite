@@ -9,6 +9,10 @@ The format is based on [Keep a Changelog], and this project adheres to
 
 ## [Unreleased]
 
+### Changed
+
+- Drop support for Erlang R15, R16 and 17.0 (because of deprecated time APIs)
+
 ### Fixed
 
 - Fix header formatting inconsistencies
