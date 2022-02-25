@@ -70,7 +70,7 @@ io_format_test() ->
     % io:format it properly when Unite pretty prints:
     apply(io, format, ["~p", []]).
 
-% EUnit has a bug where not all of the below cases are catched. To see each
+% EUnit has a bug where not all of the below cases are caught. To see each
 % individual case for sure, comment out the others:
 
 setup_test_() ->
