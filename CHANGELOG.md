@@ -13,6 +13,11 @@ The format is based on [Keep a Changelog], and this project adheres to
 
 - Print test case timeouts with message and stack trace
 
+### Fixed
+
+- Partial workaround for EUnit incorrectly reporting the wrong number of
+  cancelled cases
+
 ## [0.3.2] - 2022-02-22
 
 ### Changed

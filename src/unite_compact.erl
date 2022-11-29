@@ -78,34 +78,38 @@ handle_cancel(test, Data, State) ->
     State#s{cases = State#s.cases ++ [NewData]}.
 
 terminate({ok, Result}, #s{cases = Cases} = State) ->
-    print_failures(lists:filter(
+    Grouped = group_by(
         fun(C) ->
             case get(status, C) of
                 {error, _} ->
-                    true;
+                    failed;
                 {skipped, _} ->
-                    true;
+                    failed;
                 {cancelled, _} ->
-                    true;
+                    failed;
+                ok ->
+                    succesful;
                 _Status  ->
                     case get(reason, C) of
-                        {abort, _} -> true;
-                        _          -> false
+                        {abort, _} -> failed;
+                        {blame, _Case} -> blamed
                     end
             end
         end,
         Cases
-    )),
+    ),
+    print_failures(Grouped),
     print_times(State),
-    print_summary(Result, State).
+    print_summary(Result, State, Grouped).
 
 %--- Internal Functions -------------------------------------------------------
 
-print_failures([]) -> ok;
-print_failures(Failures) ->
+print_failures(#{failed := Failures}) ->
     Indexed = lists:zip(lists:seq(1, length(Failures)), Failures),
     [print_failure(I, F) || {I, F} <- Indexed],
-    format("~n").
+    format("~n");
+print_failures(_Cases) ->
+    ok.
 
 % Individual Test Case
 
@@ -372,11 +376,12 @@ print_time(Ms, Case) ->
 
 % Summary
 
-print_summary(Result, State) ->
+print_summary(Result, State, Grouped) ->
     case get_all(Result, [pass, fail, skip, cancel]) of
         [0, 0, 0, 0] ->
             format("0 tests run~n");
-        [Pass, Fail, Skip, Cancel] ->
+        [Pass, Fail, Skip, TotalCancel] ->
+            Cancel = TotalCancel - length(maps:get(blamed, Grouped, [])),
             Ms = elapsed_millisecond(State#s.start),
             Time = format_time(Ms),
             format("~n~s~n", [iolist_to_binary(iojoin([
@@ -489,3 +494,8 @@ escape_exception(String) ->
     % If the stack trace contained a call to io:format with a control sequence,
     % we need to escape it since we use io:format ourselves later on:
     string:replace(String, "~", "~~").
+
+group_by(Fun, List) ->
+    lists:foldl(fun(Item, Acc) ->
+        maps:update_with(Fun(Item), fun(Items) -> Items ++ [Item] end, [Item], Acc)
+    end, #{}, List).
