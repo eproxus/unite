@@ -1,3 +1,4 @@
+% @private
 -module(unite_compact).
 
 -behaviour(eunit_listener).

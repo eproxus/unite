@@ -9,8 +9,7 @@
 
 Pretty EUnit test formatters
 
-<img src="https://raw.github.com/eproxus/unite/master/screenshot.png"
- width="490" alt="Example output" />
+<img src="assets/screenshots/screenshot.png" width="490" alt="Example output" />
 
 ## Installation & Usage
 
