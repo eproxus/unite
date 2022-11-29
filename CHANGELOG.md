@@ -13,6 +13,11 @@ The format is based on [Keep a Changelog], and this project adheres to
 
 - Print test case timeouts with message and stack trace
 
+### Changed
+
+- Drop support for Erlang/OTP 18, 19 and 20 (because of lack of error
+  formatting APIs)
+
 ### Fixed
 
 - Partial workaround for EUnit incorrectly reporting the wrong number of
