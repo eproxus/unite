@@ -9,6 +9,8 @@ The format is based on [Keep a Changelog], and this project adheres to
 
 ## [Unreleased]
 
+## [0.4.0] - 2022-11-29
+
 ### Added
 
 - Print test case timeouts with message and stack trace
@@ -74,8 +76,9 @@ The format is based on [Keep a Changelog], and this project adheres to
 - Fix for older Erlang version [\#2](https://github.com/eproxus/unite/pull/2) ([JonGretar](https://github.com/JonGretar))
 
 
-[Unreleased]: https://github.com/eproxus/unite/compare/v0.3.2...HEAD
-[0.3.1]: https://github.com/eproxus/unite/compare/v0.3.1...v0.3.2
+[Unreleased]: https://github.com/eproxus/unite/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/eproxus/unite/compare/v0.3.2...v0.4.0
+[0.3.2]: https://github.com/eproxus/unite/compare/v0.3.1...v0.3.2
 [0.3.1]: https://github.com/eproxus/unite/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/eproxus/unite/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/eproxus/unite/compare/v0.0.1...v0.2.0
