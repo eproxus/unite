@@ -247,12 +247,26 @@ format_info(_Failure, {abort, {module_not_found, Module}}) ->
         ]
     };
 format_info(Failure, {cancelled, undefined}) ->
-    {
-        color:yellow(format_case(Failure, [])),
-        [
-            color:yellowb("Unknown EUnit error!")
-        ]
-    }.
+    case lists:keyfind(reason, 1, Failure) of
+        {reason, {timeout, #{stacktrace := ST}}} ->
+            {
+                color:yellow(format_case(Failure, [])),
+                [
+                    color:yellowb("Test case timeout!"),
+                    io_lib:format("~n", []),
+                    color:yellow(format_exception(exit, killed, ST))
+                ]
+            };
+        Reason ->
+            {
+                color:yellow(format_case(Failure, [])),
+                [
+                    color:yellowb("Unknown EUnit error!"),
+                    io_lib:format("~n", []),
+                    color:black(io_lib:format("~p", [Reason]))
+                ]
+            }
+    end.
 
 diff_prep_term(Term) ->
     Pretty = format_term(Term, 0, 0),

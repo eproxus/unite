@@ -70,8 +70,7 @@ io_format_test() ->
     % io:format it properly when Unite pretty prints:
     apply(io, format, ["~p", []]).
 
-% EUnit has a bug where not all of the below cases are caught. To see each
-% individual case for sure, comment out the others:
+% Generators
 
 setup_test_() ->
     {setup, fun() -> error(error_in_setup) end, fun(_) -> ok end, [?_assert(true)]}.
@@ -81,6 +80,13 @@ cleanup_test_() ->
 
 instantiation_test_() ->
     {setup, fun() -> ok end, fun(_) -> ok end, fun(_) -> error(error_in_instantiation) end}.
+
+timeout_test_() ->
+    {timeout, 0, [fun() -> timer:sleep(1000) end]}.
+
+% EUnit has a bug where the below cases are not included if the above
+% generators fail. To see these, comment out the generators above and every
+% other test case below:
 
 bad_spec_test_() -> {foo, bar, baz}.
 

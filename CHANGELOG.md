@@ -9,6 +9,10 @@ The format is based on [Keep a Changelog], and this project adheres to
 
 ## [Unreleased]
 
+### Added
+
+- Print test case timeouts with message and stack trace
+
 ## [0.3.2] - 2022-02-22
 
 ### Changed
