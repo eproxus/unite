@@ -9,6 +9,10 @@ The format is based on [Keep a Changelog], and this project adheres to
 
 ## [Unreleased]
 
+### Fixed
+
+- Fix crashing when formatting term diffs containing `~` control sequences
+
 ## [0.4.0] - 2022-11-29
 
 ### Added

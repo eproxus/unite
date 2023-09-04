@@ -275,11 +275,9 @@ format_info(Failure, {cancelled, undefined}) ->
 
 diff_prep_term(Term) ->
     Pretty = format_term(Term, 0, 0),
-    Flat = iolist_to_binary(Pretty),
     TermSplit = "([,\\[\\]\\{\\}]|\\s+=>\\s+|#\\{)",
-    re:split(Flat, TermSplit, [trim]).
+    re:split(string:replace(Pretty, "~", "~~"), TermSplit, [trim]).
 format_term(Term, Indent, Outer) ->
-
     io_lib_pretty:print(Term, Indent, columns() - Outer, -1).
 
 format_diff([]) ->
