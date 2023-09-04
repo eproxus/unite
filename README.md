@@ -1,15 +1,24 @@
-[![Travis][travis badge]][travis]
-[![Hex.pm Version][hex version badge]][hex]
-[![Hex.pm License][hex license badge]][hex]
-[![Erlang Versions][erlang version badge]][travis]
-[![Build Tool][build tool]][hex]
-[![Donations][liberapay badge]][liberapay]
+<h1 align="center">unite</h1>
 
-# Unite
+<p align="center">
+  <a href="https://hex.pm/packages/unite">
+    <img alt="hex.pm version" src="https://img.shields.io/hexpm/v/unite?style=flat-square"/>
+  </a>
+  <a href="LICENSE">
+    <img alt="hex.pm license" src="https://img.shields.io/hexpm/l/unite?style=flat-square"/>
+  </a>
+  <img alt="erlang versions" src="https://img.shields.io/badge/erlang-21+-blue.svg?style=flat-square"/>
+  <a href="https://github.com/sponsors/eproxus">
+    <img alt="hex.pm license" src="https://img.shields.io/github/sponsors/eproxus?style=flat-square&color=%23ec6cb9"/>
+  </a>
+</p>
 
-Pretty EUnit test formatters
-
-<img src="assets/screenshots/screenshot.png" width="490" alt="Example output" />
+<p align="center">
+  Pretty EUnit test formatters
+</p>
+<p align="center">
+  <img src="assets/screenshots/screenshot.png" width="490" alt="Example output" />
+</p>
 
 ## Installation & Usage
 
@@ -42,23 +51,4 @@ This will show the top 10 slowest tests (or the top N slowest tests if
 
 ## Donations
 
-If you or your company use Unite and find it useful, [donations][liberapay] are greatly appreciated!
-
-<noscript>
-  <a href="https://liberapay.com/eproxus/donate">
-    <img alt="Donate using Liberapay"
-         src="https://liberapay.com/assets/widgets/donate.svg">
-  </a>
-</noscript>
-
-
-<!-- Badges -->
-[travis]: https://travis-ci.org/eproxus/unite
-[travis badge]: https://img.shields.io/travis/eproxus/unite/master.svg?style=flat-square
-[hex]: https://hex.pm/packages/unite
-[hex version badge]: https://img.shields.io/hexpm/v/unite.svg?style=flat-square
-[hex license badge]: https://img.shields.io/hexpm/l/unite.svg?style=flat-square
-[erlang version badge]: https://img.shields.io/badge/erlang-21%20to%2024-blue.svg?style=flat-square
-[build tool]: https://img.shields.io/badge/build%20tool-rebar3-orange.svg?style=flat-square
-[liberapay badge]: https://img.shields.io/liberapay/receives/eproxus.svg?logo=liberapay&style=flat-square
-[liberapay]: https://liberapay.com/eproxus/
+If you or your company use Unite and find it useful, [donations](https://github.com/sponsors/eproxus) are greatly appreciated!
