@@ -231,7 +231,7 @@ format_info(Failure, {abort, {Reason, {E, R, ST}}}) ->
                 cleanup_failed -> "Cleanup failed: ";
                 instantiation_failed -> "Instantiation failed: ";
                 bad_instantiator -> "Bad test representation: ";
-                _Other -> "Unknown failure reason: "
+                Other -> io_lib:format("Unknown failure reason (~p): ", [Other])
             end),
             io_lib:format("~n", []),
             color:yellow(format_exception(E, R, ST))
