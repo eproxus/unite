@@ -24,14 +24,14 @@ assert_equal_test() ->
             value => 1,
             list => [a, b, c, d, e],
             tuple => {foo, bar},
-            binary => <<"test string">>,
+            binary => <<"test string ~p">>,
             map => #{a => 1, b => 2, c => value}
         },
         (fun() -> #{
             value => 2,
             list => [a, b, x, d, e],
             tuple => {foo, baz},
-            binary => <<"test binary">>,
+            binary => <<"test binary ~p">>,
             map => #{foo => baz, bar => qux}
         } end)()
     ).
