@@ -9,6 +9,12 @@ The format is based on [Keep a Changelog], and this project adheres to
 
 ## [Unreleased]
 
+## [0.4.2] - 2023-09-05
+
+### Fixed
+
+- Handle bad test instantiators (thanks @rlipscombe & @danfilip!)
+
 ## [0.4.1] - 2023-09-04
 
 ### Fixed

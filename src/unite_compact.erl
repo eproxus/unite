@@ -222,6 +222,17 @@ format_info(Failure, {abort, {generator_failed, {MFA, {E, R, ST}}}}) ->
             color:yellow(format_exception(E, R, ST))
         ]
     };
+format_info(Failure, {abort, {{bad_instantiator, {{M, F, A}, Result}}, {E, R, ST}}}) ->
+    Location = {M, F, A, []},
+    {
+        color:yellow(format_case(Failure, [Location|ST])),
+        [
+            color:yellowb(io_lib:format("Bad test instantiator: ~p~n", [
+                Result
+            ])),
+            color:yellow(format_exception(E, R, ST))
+        ]
+    };
 format_info(Failure, {abort, {Reason, {E, R, ST}}}) ->
     {
         color:yellow(format_case(Failure, ST)),
@@ -230,7 +241,6 @@ format_info(Failure, {abort, {Reason, {E, R, ST}}}) ->
                 setup_failed -> "Setup failed: ";
                 cleanup_failed -> "Cleanup failed: ";
                 instantiation_failed -> "Instantiation failed: ";
-                bad_instantiator -> "Bad test representation: ";
                 Other -> io_lib:format("Unknown failure reason (~p): ", [Other])
             end),
             io_lib:format("~n", []),

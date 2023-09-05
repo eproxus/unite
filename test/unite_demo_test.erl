@@ -64,6 +64,7 @@ long_test() -> timer:sleep(250).
 
 short_test() -> timer:sleep(50).
 
+bad_test_instantiator_test_() -> {foreach, fun() -> ok end, [fun(_) -> ok end]}.
 
 io_format_test() ->
     % If a control code sneaks into the stack trace, we have to make sure we can
