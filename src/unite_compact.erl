@@ -229,7 +229,9 @@ format_info(Failure, {abort, {Reason, {E, R, ST}}}) ->
             color:yellowb(case Reason of
                 setup_failed -> "Setup failed: ";
                 cleanup_failed -> "Cleanup failed: ";
-                instantiation_failed -> "Instantiation failed: "
+                instantiation_failed -> "Instantiation failed: ";
+                bad_instantiator -> "Bad test representation: ";
+                _Other -> "Unknown failure reason: "
             end),
             io_lib:format("~n", []),
             color:yellow(format_exception(E, R, ST))
