@@ -495,7 +495,7 @@ elapsed_millisecond(Start) ->
     Elapsed = current_time() - Start,
     erlang:convert_time_unit(Elapsed, native, millisecond).
 
-format(Format)       -> format(Format, []).
+format(Format)       -> format("~ts", [Format]).
 format(Format, Data) -> io:format(iolist_to_binary(Format), Data).
 
 format_exception(I, Class, Reason, StackTrace, StackFun, FormatFun) ->
