@@ -504,7 +504,7 @@ format_exception(I, Class, Reason, StackTrace, StackFun, FormatFun) ->
 escape_exception(String) ->
     % If the stack trace contained a call to io:format with a control sequence,
     % we need to escape it since we use io:format ourselves later on:
-    string:replace(String, "~", "~~").
+    string:replace(String, "~", "~~", all).
 
 group_by(Fun, List) ->
     lists:foldl(fun(Item, Acc) ->
