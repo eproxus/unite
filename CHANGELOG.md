@@ -9,6 +9,13 @@ The format is based on [Keep a Changelog], and this project adheres to
 
 ## [Unreleased]
 
+## [0.4.3] - 2023-09-27
+
+### Fixed
+
+- Fix crashing when formatting term containing multiple `~` control sequences
+  (thanks @maxno-kivra!)
+
 ## [0.4.2] - 2023-09-05
 
 ### Fixed
@@ -88,7 +95,9 @@ The format is based on [Keep a Changelog], and this project adheres to
 - Fix for older Erlang version [\#2](https://github.com/eproxus/unite/pull/2) ([JonGretar](https://github.com/JonGretar))
 
 
-[Unreleased]: https://github.com/eproxus/unite/compare/v0.4.1...HEAD
+[Unreleased]: https://github.com/eproxus/unite/compare/v0.4.3...HEAD
+[0.4.3]: https://github.com/eproxus/unite/compare/v0.4.2...v0.4.3
+[0.4.2]: https://github.com/eproxus/unite/compare/v0.4.1...v0.4.2
 [0.4.1]: https://github.com/eproxus/unite/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/eproxus/unite/compare/v0.3.2...v0.4.0
 [0.3.2]: https://github.com/eproxus/unite/compare/v0.3.1...v0.3.2

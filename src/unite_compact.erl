@@ -288,7 +288,8 @@ format_info(Failure, {cancelled, undefined}) ->
 diff_prep_term(Term) ->
     Pretty = format_term(Term, 0, 0),
     TermSplit = "([,\\[\\]\\{\\}]|\\s+=>\\s+|#\\{)",
-    re:split(string:replace(Pretty, "~", "~~"), TermSplit, [trim]).
+    re:split(Pretty, TermSplit, [trim]).
+
 format_term(Term, Indent, Outer) ->
     io_lib_pretty:print(Term, Indent, columns() - Outer, -1).
 
@@ -499,12 +500,7 @@ format(Format)       -> format("~ts", [Format]).
 format(Format, Data) -> io:format(iolist_to_binary(Format), Data).
 
 format_exception(I, Class, Reason, StackTrace, StackFun, FormatFun) ->
-    escape_exception(?ERROR_FORMATTER:format_exception(I, Class, Reason, StackTrace, StackFun, FormatFun)).
-
-escape_exception(String) ->
-    % If the stack trace contained a call to io:format with a control sequence,
-    % we need to escape it since we use io:format ourselves later on:
-    string:replace(String, "~", "~~", all).
+    ?ERROR_FORMATTER:format_exception(I, Class, Reason, StackTrace, StackFun, FormatFun).
 
 group_by(Fun, List) ->
     lists:foldl(fun(Item, Acc) ->

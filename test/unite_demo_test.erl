@@ -24,14 +24,14 @@ assert_equal_test() ->
             value => 1,
             list => [a, b, c, d, e],
             tuple => {foo, bar},
-            binary => <<"test string ~p">>,
+            binary => <<"test string ~p ~s">>,
             map => #{a => 1, b => 2, c => value}
         },
         (fun() -> #{
             value => 2,
             list => [a, b, x, d, e],
             tuple => {foo, baz},
-            binary => <<"test binary ~p">>,
+            binary => <<"test binary ~p ~s">>,
             map => #{foo => baz, bar => qux}
         } end)()
     ).
@@ -69,7 +69,7 @@ bad_test_instantiator_test_() -> {foreach, fun() -> ok end, [fun(_) -> ok end]}.
 io_format_test() ->
     % If a control code sneaks into the stack trace, we have to make sure we can
     % io:format it properly when Unite pretty prints:
-    apply(io, format, ["~p", []]).
+    apply(io, format, ["~p ~s", []]).
 
 % Generators
 
